@@ -24,8 +24,8 @@ author:
   # Biographic information
   avatar           : "Yuning_Han.png"
   name             : "Yuning Han"
-  pronouns         : "he/him" # example: "she/her"  
-  bio              : "Short biography for the left-hand sidebar"
+  pronouns         : "he/him/his" # example: "she/her"  
+  bio              : "M.S. with Electrical Engineering, Columbia University, applying for PhD right now."
   location         : "Jersey City, NJ"
   employer         : "Columbia University"
   uri              : # URL
@@ -33,7 +33,7 @@ author:
 
   # Academic websites
   arxiv            : # URL - Update with the correct link to your profile
-  googlescholar    : "https://scholar.google.com/citations?user=PS_CX0AAAAAJ"
+  googlescholar    : "https://scholar.google.com/citations?hl=zh-CN&authuser=3&user=QgPTwS8AAAAJ"
   impactstory      : # URL
   orcid            : "http://orcid.org/yourorcidurl"
   semantic         : # URL
