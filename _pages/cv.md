@@ -14,17 +14,19 @@ Education
 * M.S. in Electrical Engineering, Columbia University University, 2025
 * B.S. in Electrical Engineering, Shanghai Jiao Tong University, 2023
 
-Work experience
+Research experience
 ======
-* Spring 2024: Academic Pages Collaborator
-  * GitHub University
-  * Duties includes: Updates and improvements to template
-  * Supervisor: The Users
+* April 2024 - Dec 2024: Research Assistant
+  * Tufts University
+  * Supervisor: Yingjie Lao
+  * Project leader and the first author of the paper ‘UIBDiffusion: Universal Imperceptible Backdoor Attack for Diffusion Models’, CVPR 2025 accepted.
+  * Design a universal imperceptible image trigger generator based on Universal Adversarial Perturbation (UAP) with a trainable network and an image classifier network, generate various triggers based on different datasets and classifier networks, all proved to be imperceptible both on image level and on noise level during the diffusion process.
+  * Use our trigger to backdoor attack diffusion models and achieve an amazingly high Attack Success Rate (ASR) with 100% in a very low data poisoning rate (5%). The model performs well on different generation models and different samplers.
+  * Evaluate our trigger on Elijah and TERD, two SOTA backdoor attack defense methods. Experiments show that our trigger can fully escape these two defense methods with a 100% escaping success rate and existing methods can’t reverse our trigger.
 
-* Fall 2015: Research Assistant
-  * GitHub University
-  * Duties included: Merging pull requests
-  * Supervisor: Professor Hub
+* Dec 2022 - June 2023: Research Assistant
+  * Shanghai Jiao Tong University
+  * Supervisor: Zhiyong Chen
 
 * Summer 2015: Research Assistant
   * GitHub University
@@ -46,18 +48,3 @@ Publications
     {% include archive-single-cv.html %}
   {% endfor %}</ul>
   
-Talks
-======
-  <ul>{% for post in site.talks reversed %}
-    {% include archive-single-talk-cv.html  %}
-  {% endfor %}</ul>
-  
-Teaching
-======
-  <ul>{% for post in site.teaching reversed %}
-    {% include archive-single-cv.html %}
-  {% endfor %}</ul>
-  
-Service and leadership
-======
-* Currently signed in to 43 different slack teams
