@@ -24,14 +24,20 @@ Research experience
   * Use our trigger to backdoor attack diffusion models and achieve an amazingly high Attack Success Rate (ASR) with 100% in a very low data poisoning rate (5%). The model performs well on different generation models and different samplers.
   * Evaluate our trigger on Elijah and TERD, two SOTA backdoor attack defense methods. Experiments show that our trigger can fully escape these two defense methods with a 100% escaping success rate and existing methods can’t reverse our trigger.
 
-* Dec 2022 - June 2023: Research Assistant
+* July 2022 - June 2023: Research Assistant
   * Shanghai Jiao Tong University
   * Supervisor: Zhiyong Chen
+  * Propose a hierarchical adaptive semantic communication ML system, applying it to the processing of video semantics used for video reconstruction at the users’ head receiving compressed key frames with no background knowledge.
+  * Propose a learnable model to extract and encode video keyframes based on the U-net structure. The receiver can use the compressed key frames to reconstruct the full frames with no background knowledge based on the trained model. Collaborate with the Kinetics dataset to train the model and evaluate its performance.
+  * Achieved a compression ratio of 99.87%, video keyframe restoration accuracy is over 95% under simple noise circumstances.
 
-* Summer 2015: Research Assistant
-  * GitHub University
-  * Duties included: Tagging issues
-  * Supervisor: Professor Git
+* July 2021 - Feb 2022: Research Assistant
+  * Shanghai Jiao Tong University
+  * Supervisor: Liyao Xiang
+  * Build an attacking defense model against typical attacking scenarios based on GMM, GAN, and DQN.
+  * Propose a model to defend the black-box attack against datasets based on GAN with clean and poisoned datasets, making the model resilient to tag attacks. Train and evaluate over CelebA dataset, and achieve a classification accuracy of over 90%.
+  * Design a DQN network to improve the model’s performance compared with the original model, and improve accuracy by 15%.
+
   
 Skills
 ======
