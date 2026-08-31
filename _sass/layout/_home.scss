@@ -9,21 +9,24 @@ $accent-color: #2f7f93;
    Reveal-on-scroll
    -------------------------------------------------------------------------- */
 
-.reveal {
+/* Content is hidden ONLY when the reveal script is alive to un-hide it
+   (html.js-reveal is set by that script). Without JS, everything renders
+   normally — a broken animation must never cost the content. */
+.js-reveal .reveal {
   opacity: 0;
   transform: translateY(18px);
   transition: opacity 0.55s ease-out, transform 0.55s ease-out;
 }
 
-.reveal.is-visible {
+.js-reveal .reveal.is-visible {
   opacity: 1;
   transform: none;
 }
 
 /* Never animate for people who ask the OS not to */
 @media (prefers-reduced-motion: reduce) {
-  .reveal,
-  .reveal.is-visible {
+  .js-reveal .reveal,
+  .js-reveal .reveal.is-visible {
     opacity: 1;
     transform: none;
     transition: none;
