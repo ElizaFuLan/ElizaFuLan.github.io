@@ -5,19 +5,31 @@ author_profile: true
 redirect_from: 
   - /about/
   - /about.html
+feature_row_cats:
+  - image_path: /images/publications/cats-framework.png
+    alt: "CATS cascaded adaptive tree speculation framework overview"
+    title: "CATS: Cascaded Adaptive Tree Speculation for Memory-Limited LLM Inference Acceleration"
+    excerpt: "A self-speculative decoding framework for memory-limited LLM inference on edge devices: a lightweight draft adapter proposes a candidate token tree, a shallow verifier cheaply prunes it, and the target model confirms the survivors in a single pass — cutting target-model forward calls without raising peak memory. Achieves up to 5.08&times; wall-clock speedup with no loss in generation quality, outperforming the prior SOTA by up to 1.45&times;. *Under review, NeurIPS 2026.* &nbsp;[Code](https://github.com/ElizaFuLan/CATS){: .btn .btn--small}"
+    url: "https://arxiv.org/abs/2605.11186"
+    btn_label: "Read Paper"
+    btn_class: "btn--primary"
+feature_row_uib:
+  - image_path: /images/publications/uibdiffusion.jpg
+    alt: "UIBDiffusion trigger generation and forward/backward diffusion process"
+    title: "UIBDiffusion: Universal Imperceptible Backdoor Attack for Diffusion Models"
+    excerpt: "A universal, imperceptible backdoor trigger for diffusion models built from universal adversarial perturbations: image- and model-agnostic, it drives a high attack success rate on triggered inputs while keeping generation quality high on clean data, and evades state-of-the-art backdoor defenses (Elijah, TERD). **CVPR 2025.** &nbsp;[Code](https://github.com/TheLaoLab/UIBDiffusion){: .btn .btn--small}"
+    url: "https://ieeexplore.ieee.org/abstract/document/11093857"
+    btn_label: "Read Paper"
+    btn_class: "btn--primary"
 ---
 
 Hi, I'm Yuning Han, a PhD student in the Department of Computer & Information Science & Engineering (CISE) at the University of Florida. My research focuses on efficient LLM inference.
 
 Feel free to reach out via [email](mailto:yuninghan@ufl.edu), or connect with me on [GitHub](https://github.com/ElizaFuLan), [LinkedIn](https://www.linkedin.com/in/yuning-han-827a56288/), or [Google Scholar](https://scholar.google.com/citations?user=QgPTwS8AAAAJ&hl=en).
 
-Research Experience
+Selected Publications
 ======
 
-**Inference Speedup Structure Design for Memory-Limited LLM** — University of Florida, advised by Dr. Jingwei Sun (Sept 2025 – May 2026)
+{% include feature_row id="feature_row_cats" type="left" %}
 
-First-author paper: [CATS: Cascaded Adaptive Tree Speculation for Memory-Limited LLM Inference Acceleration](https://arxiv.org/abs/2605.11186) *(under review, NeurIPS 2026)*. Designed a self-speculative decoding structure applicable to different auto-regressive LLM architectures, achieving a wall-clock speedup of up to 5.08x with no degradation in generation quality on real edge devices, outperforming the prior SOTA method by up to 1.45x under edge memory constraints.
-
-**Analysis of Backdoor Attack and Protection of Diffusion Models** — Tufts University, advised by Prof. Yingjie Lao (Apr 2024 – Feb 2025)
-
-First-author paper: [UIBDiffusion: Universal Imperceptible Backdoor Attack for Diffusion Models](https://ieeexplore.ieee.org/abstract/document/11093857), **CVPR 2025**. Proposed a universal, imperceptible backdoor trigger for diffusion models based on universal adversarial perturbations, causing significant, controllable performance deviations on triggered inputs while preserving generation quality on clean data and evading state-of-the-art backdoor defenses.
+{% include feature_row id="feature_row_uib" type="left" %}
