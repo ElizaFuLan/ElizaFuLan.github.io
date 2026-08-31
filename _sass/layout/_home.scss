@@ -1,0 +1,256 @@
+/* ==========================================================================
+   HOME PAGE — layout & motion customizations
+   ========================================================================== */
+
+/* Accent tint base — matches the theme's link color */
+$accent-color: #2f7f93;
+
+/* --------------------------------------------------------------------------
+   Reveal-on-scroll
+   -------------------------------------------------------------------------- */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.55s ease-out, transform 0.55s ease-out;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Never animate for people who ask the OS not to */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .pub-card,
+  .pub-card__figure img,
+  .tag-list li,
+  .edu-list li {
+    transition: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Intro
+   -------------------------------------------------------------------------- */
+
+.intro__lead {
+  font-size: 1.125em;
+  line-height: 1.75;
+  margin-bottom: 1em;
+}
+
+.intro__links {
+  font-size: 0.95em;
+}
+
+/* --------------------------------------------------------------------------
+   Section headings with accent rule
+   -------------------------------------------------------------------------- */
+
+.section-heading {
+  position: relative;
+  margin: 2.5em 0 1.25em;
+  padding-bottom: 0.4em;
+  font-size: 1.5em;
+  border-bottom: 1px solid var(--global-border-color);
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 2.5em;
+    height: 3px;
+    background-color: var(--global-link-color);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Research interest tags
+   -------------------------------------------------------------------------- */
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin: 0 0 1.5em;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: 0.3em 0.85em;
+    font-size: 0.8em;
+    line-height: 1.5;
+    color: var(--global-link-color);
+    background-color: rgba($accent-color, 0.10);
+    border: 1px solid rgba($accent-color, 0.25);
+    border-radius: 2em;
+    transition: transform 0.2s ease-out, background-color 0.2s ease-out;
+
+    &:hover {
+      transform: translateY(-2px);
+      background-color: rgba($accent-color, 0.18);
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Education list
+   -------------------------------------------------------------------------- */
+
+.edu-list {
+  margin: 0 0 1em;
+  padding: 0;
+  list-style: none;
+
+  li {
+    position: relative;
+    margin-bottom: 1.1em;
+    padding-left: 1.1em;
+    border-left: 2px solid var(--global-border-color);
+    transition: border-color 0.2s ease-out;
+
+    &:hover {
+      border-left-color: var(--global-link-color);
+    }
+  }
+
+  .edu-list__degree {
+    display: block;
+    font-weight: bold;
+    line-height: 1.4;
+  }
+
+  .edu-list__school {
+    display: block;
+    font-size: 0.95em;
+  }
+
+  .edu-list__date {
+    display: block;
+    font-size: 0.8em;
+    color: var(--global-base-color);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Publication cards
+   -------------------------------------------------------------------------- */
+
+.pub-card {
+  margin-bottom: 2em;
+  overflow: hidden;
+  background-color: var(--global-bg-color);
+  border: 1px solid var(--global-border-color);
+  border-radius: 6px;
+  transition: transform 0.25s ease-out, box-shadow 0.25s ease-out,
+    border-color 0.25s ease-out;
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: rgba($accent-color, 0.40);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.pub-card__figure {
+  overflow: hidden;
+  line-height: 0;
+  background-color: var(--global-code-background-color);
+  border-bottom: 1px solid var(--global-border-color);
+
+  img {
+    width: 100%;
+    transition: transform 0.4s ease-out;
+  }
+
+  &:hover img {
+    transform: scale(1.02);
+  }
+}
+
+.pub-card__body {
+  padding: 1.25em 1.4em 1.4em;
+}
+
+.pub-card__venue {
+  display: inline-block;
+  margin-bottom: 0.6em;
+  padding: 0.2em 0.7em;
+  font-size: 0.72em;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--global-link-color);
+  background-color: rgba($accent-color, 0.12);
+  border-radius: 3px;
+}
+
+.pub-card__title {
+  margin: 0 0 0.4em;
+  font-size: 1.15em;
+  line-height: 1.35;
+}
+
+.pub-card__authors {
+  margin: 0 0 0.7em;
+  font-size: 0.85em;
+  color: var(--global-base-color);
+}
+
+.pub-card__desc {
+  margin: 0 0 1em;
+  font-size: 0.9em;
+  line-height: 1.65;
+}
+
+.pub-card__actions {
+  margin: 0;
+
+  .btn {
+    margin-right: 0.4em;
+    margin-bottom: 0.3em;
+    font-size: 0.75em;
+    transition: transform 0.2s ease-out, background-color 0.2s ease-out,
+      color 0.2s ease-out;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+}
+
+/* Outlined secondary button.
+   The theme's own .btn--inverse renders near-invisible text
+   (--global-text-color-light on a white background), so this replaces it. */
+.btn--ghost {
+  color: var(--global-link-color) !important;
+  background-color: transparent;
+  border: 1px solid rgba($accent-color, 0.45) !important;
+
+  &:hover {
+    color: #fff !important;
+    background-color: var(--global-link-color);
+    border-color: var(--global-link-color) !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Sidebar avatar
+   -------------------------------------------------------------------------- */
+
+.author__avatar img {
+  transition: transform 0.3s ease-out;
+
+  &:hover {
+    transform: scale(1.04);
+  }
+}
