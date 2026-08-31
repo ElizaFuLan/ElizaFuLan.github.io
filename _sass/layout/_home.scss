@@ -244,7 +244,7 @@ $accent-color: #2f7f93;
 }
 
 /* --------------------------------------------------------------------------
-   Sidebar avatar
+   Sidebar
    -------------------------------------------------------------------------- */
 
 .author__avatar img {
@@ -252,5 +252,19 @@ $accent-color: #2f7f93;
 
   &:hover {
     transform: scale(1.04);
+  }
+}
+
+/* The sidebar "Follow" button only shows below the $large breakpoint, where the
+   theme paints it in --global-text-color-light (~1.9:1 on white — unreadable).
+   Give it real contrast on the screens that actually display it. */
+.author__urls-wrapper button.btn--inverse {
+  color: var(--global-text-color) !important;
+  transition: background-color 0.2s ease-out, color 0.2s ease-out;
+
+  &:hover {
+    color: #fff !important;
+    background-color: var(--global-link-color);
+    border-color: var(--global-link-color) !important;
   }
 }
