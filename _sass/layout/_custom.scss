@@ -247,6 +247,47 @@ $accent-color: #2f7f93;
 }
 
 /* --------------------------------------------------------------------------
+   CV entries
+   -------------------------------------------------------------------------- */
+
+.cv-role {
+  margin: 1.75em 0 0.75em;
+  font-size: 0.8em;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--global-base-color);
+}
+
+.page__content .cv-entry__title {
+  margin: 1.4em 0 0.15em;
+  font-size: 1.05em;
+  line-height: 1.4;
+}
+
+/* Institution · advisor · dates — one quiet line, never a table */
+.cv-meta {
+  margin: 0 0 0.6em;
+  font-size: 0.85em;
+  line-height: 1.5;
+  color: var(--global-base-color);
+
+  .cv-meta__sep {
+    padding: 0 0.35em;
+    opacity: 0.6;
+  }
+}
+
+.cv-entry__points {
+  margin-top: 0.3em;
+  font-size: 0.92em;
+
+  li {
+    margin-bottom: 0.35em;
+  }
+}
+
+/* --------------------------------------------------------------------------
    Sidebar
    -------------------------------------------------------------------------- */
 
