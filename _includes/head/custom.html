@@ -21,25 +21,13 @@
      NOTE: compress_html collapses this file to a single line, so this script
      must never use // line comments — they would swallow the rest of the code. -->
 <script>
-  /* Opt into the hidden-until-revealed state only when JS is running, so a
-     broken script can cost the animation but never the content itself. */
-  document.documentElement.className += " js-reveal";
-
+  /* Purely additive: this only ADDS an entrance animation to already-visible
+     content. If any of it fails, the page still renders in full. */
   document.addEventListener("DOMContentLoaded", function () {
+    if (!("IntersectionObserver" in window)) { return; }
+
     var items = document.querySelectorAll(".reveal");
     if (!items.length) { return; }
-
-    function showAll() {
-      for (var i = 0; i < items.length; i++) {
-        items[i].classList.add("is-visible");
-      }
-    }
-
-    var reduced = window.matchMedia
-      && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    /* Motion turned off, or no observer support: just show everything. */
-    if (reduced || !("IntersectionObserver" in window)) { showAll(); return; }
 
     try {
       var observer = new IntersectionObserver(function (entries) {
@@ -50,16 +38,11 @@
         });
       }, { rootMargin: "0px 0px -8% 0px", threshold: 0.05 });
 
-      for (var j = 0; j < items.length; j++) {
-        items[j].style.transitionDelay = Math.min(j * 60, 240) + "ms";
-        observer.observe(items[j]);
+      for (var i = 0; i < items.length; i++) {
+        items[i].style.animationDelay = Math.min(i * 60, 240) + "ms";
+        observer.observe(items[i]);
       }
-
-      /* Safety net: nothing should stay hidden for longer than this. */
-      window.setTimeout(showAll, 2500);
-    } catch (e) {
-      showAll();
-    }
+    } catch (e) { /* no animation, content unaffected */ }
   });
 </script>
 

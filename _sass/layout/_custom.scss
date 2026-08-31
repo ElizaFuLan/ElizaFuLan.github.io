@@ -9,27 +9,30 @@ $accent-color: #2f7f93;
    Reveal-on-scroll
    -------------------------------------------------------------------------- */
 
-/* Content is hidden ONLY when the reveal script is alive to un-hide it
-   (html.js-reveal is set by that script). Without JS, everything renders
-   normally — a broken animation must never cost the content. */
-.js-reveal .reveal {
-  opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 0.55s ease-out, transform 0.55s ease-out;
+/* Reveal is purely additive: nothing here ever leaves an element hidden.
+   .reveal has no styles of its own, so content is visible no matter what the
+   script does. When the script sees an element scroll into view it adds
+   .is-visible, and the keyframes play the entrance from hidden to visible.
+   Script broken, blocked, or slow => no animation, content still there. */
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-.js-reveal .reveal.is-visible {
-  opacity: 1;
-  transform: none;
+.reveal.is-visible {
+  animation: reveal-in 0.55s ease-out both;
 }
 
 /* Never animate for people who ask the OS not to */
 @media (prefers-reduced-motion: reduce) {
-  .js-reveal .reveal,
-  .js-reveal .reveal.is-visible {
-    opacity: 1;
-    transform: none;
-    transition: none;
+  .reveal.is-visible {
+    animation: none;
   }
 
   .pub-card,
