@@ -1,0 +1,41 @@
+---
+layout: default
+---
+
+{% include base_path %}
+{% assign author = site.author %}
+
+<div id="main" class="home" role="main">
+  <header class="hero">
+    <div class="hero__text">
+      {% if page.hero_eyebrow %}<p class="hero__eyebrow">{{ page.hero_eyebrow }}</p>{% endif %}
+
+      <h1 class="hero__name">
+        <span class="visually-hidden">{{ author.name }}</span>
+        <span aria-hidden="true">{%- assign words = author.name | split: " " -%}{%- assign n = 0 -%}{%- for w in words -%}<span class="hero__word">{%- assign chars = w | split: "" -%}{%- for c in chars -%}<span class="hero__char" style="--i:{{ n }}">{{ c }}</span>{%- assign n = n | plus: 1 -%}{%- endfor -%}</span>{%- unless forloop.last -%}{{ " " }}{%- endunless -%}{%- endfor -%}</span>
+      </h1>
+
+      {% if page.hero_statement %}
+        <p class="hero__statement"{% if page.hero_spec %} data-spec="{{ page.hero_spec | escape }}"{% endif %}>{{ page.hero_statement }}</p>
+        {% if page.hero_spec %}
+          <p class="hero__readout"><span class="hero__readout-text"></span><button type="button" class="hero__replay" hidden>Replay</button></p>
+        {% endif %}
+      {% endif %}
+
+      <ul class="hero__links">
+        {% if author.email %}<li><a href="mailto:{{ author.email }}">Email</a></li>{% endif %}
+        {% if author.googlescholar %}<li><a href="{{ author.googlescholar }}">Google Scholar</a></li>{% endif %}
+        {% if author.github %}<li><a href="https://github.com/{{ author.github }}">GitHub</a></li>{% endif %}
+        {% if author.linkedin %}<li><a href="https://www.linkedin.com/in/{{ author.linkedin }}">LinkedIn</a></li>{% endif %}
+        <li><a href="{{ base_path }}/cv/">CV</a></li>
+      </ul>
+    </div>
+
+    <figure class="hero__portrait">
+      <img src="{{ author.avatar | prepend: '/images/' | prepend: base_path }}"
+           alt="Profile avatar (illustration)" width="460" height="460" fetchpriority="high">
+    </figure>
+  </header>
+
+  {{ content }}
+</div>

@@ -1,236 +1,254 @@
 /* ==========================================================================
-   HOME PAGE — layout & motion customizations
+   SITE DESIGN LAYER
+   Tokens, type and site-wide overrides. Every page inherits these; the home
+   page's own layout lives in _home.scss.
+
+   Palette is lifted from the portrait: the hair's cyan is the one accent
+   (links, "verified"), the ribbon's coral is a signal used only for
+   "rejected" in the hero's decoding animation. Both sit on a warm paper
+   ground with a blue-black ink. Nothing else gets a colour.
    ========================================================================== */
 
-/* Accent tint base — matches the theme's link color */
-$accent-color: #2f7f93;
-
 /* --------------------------------------------------------------------------
-   Reveal-on-scroll
+   Fonts: self-hosted latin subsets (assets/fonts)
    -------------------------------------------------------------------------- */
 
-/* Reveal is purely additive: nothing here ever leaves an element hidden.
-   .reveal has no styles of its own, so content is visible no matter what the
-   script does. When the script sees an element scroll into view it adds
-   .is-visible, and the keyframes play the entrance from hidden to visible.
-   Script broken, blocked, or slow => no animation, content still there. */
-@keyframes reveal-in {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+/* Newsreader: a normal-width reading serif with an optical-size axis, so the
+   same file gives a display cut for the name and a text cut for titles. */
+@font-face {
+  font-family: "Newsreader";
+  src: url("../fonts/newsreader-var.woff2") format("woff2");
+  font-weight: 300 600;
+  font-style: normal;
+  font-display: swap;
 }
 
-.reveal.is-visible {
-  animation: reveal-in 0.55s ease-out both;
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("../fonts/ibm-plex-sans-var.woff2") format("woff2");
+  font-weight: 100 700;
+  font-style: normal;
+  font-display: swap;
 }
 
-/* Never animate for people who ask the OS not to */
-@media (prefers-reduced-motion: reduce) {
-  .reveal.is-visible {
-    animation: none;
-  }
-
-  .pub-card,
-  .pub-card__figure img,
-  .tag-list li,
-  .edu-list li {
-    transition: none !important;
-  }
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("../fonts/ibm-plex-sans-var-italic.woff2") format("woff2");
+  font-weight: 100 700;
+  font-style: italic;
+  font-display: swap;
 }
 
-/* --------------------------------------------------------------------------
-   Intro
-   -------------------------------------------------------------------------- */
-
-.intro__lead {
-  font-size: 1.125em;
-  line-height: 1.75;
-  margin-bottom: 1em;
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("../fonts/ibm-plex-mono-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
-.intro__links {
-  font-size: 0.95em;
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("../fonts/ibm-plex-mono-medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
 }
 
 /* --------------------------------------------------------------------------
-   Section headings with accent rule
+   Tokens
    -------------------------------------------------------------------------- */
 
-.section-heading {
-  position: relative;
-  margin: 2.5em 0 1.25em;
-  padding-bottom: 0.4em;
-  font-size: 1.5em;
-  border-bottom: 1px solid var(--global-border-color);
+:root {
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-sans: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-  &::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -1px;
-    width: 2.5em;
-    height: 3px;
-    background-color: var(--global-link-color);
-  }
+  --paper: #f4f4f0;
+  --paper-raised: #eaebe5;
+  --paper-glass: rgba(244, 244, 240, 0.84);
+  --figure-ground: #ffffff;
+  --ink: #11181c;
+  --ink-soft: #3b454b;
+  --muted: #5d686e;
+  --rule: #d5d9d3;
+  --rule-strong: #b3bab4;
+  --accent: #0a7184;
+  --accent-strong: #06505e;
+  --accent-wash: rgba(10, 113, 132, 0.12);
+  --signal: #b5462f;
+  --on-accent: #ffffff;
+
+  /* motion: one arrival curve, one symmetric curve, four durations */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-1: 160ms;
+  --dur-2: 280ms;
+  --dur-3: 520ms;
+  --dur-4: 900ms;
+
+  --masthead-h: 70px;
+
+  /* Map onto the theme's own variables so every existing page follows */
+  --global-base-color: var(--muted);
+  --global-bg-color: var(--paper);
+  --global-border-color: var(--rule);
+  --global-code-background-color: var(--paper-raised);
+  --global-code-text-color: var(--ink);
+  --global-fig-caption-color: var(--muted);
+  --global-link-color: var(--accent);
+  --global-link-color-hover: var(--accent-strong);
+  --global-link-color-visited: var(--accent);
+  --global-masthead-link-color: var(--ink-soft);
+  --global-masthead-link-color-hover: var(--ink);
+  --global-text-color: var(--ink-soft);
+  --global-text-color-light: var(--muted);
+  --global-thead-color: var(--paper-raised);
 }
 
-/* --------------------------------------------------------------------------
-   Research interest tags
-   -------------------------------------------------------------------------- */
-
-.tag-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5em;
-  margin: 0 0 1.5em;
-  padding: 0;
-  list-style: none;
-
-  li {
-    padding: 0.3em 0.85em;
-    font-size: 0.8em;
-    line-height: 1.5;
-    color: var(--global-link-color);
-    background-color: rgba($accent-color, 0.10);
-    border: 1px solid rgba($accent-color, 0.25);
-    border-radius: 2em;
-    transition: transform 0.2s ease-out, background-color 0.2s ease-out;
-
-    &:hover {
-      transform: translateY(-2px);
-      background-color: rgba($accent-color, 0.18);
-    }
-  }
-}
-
-/* --------------------------------------------------------------------------
-   Education list
-   -------------------------------------------------------------------------- */
-
-.edu-list {
-  margin: 0 0 1em;
-  padding: 0;
-  list-style: none;
-
-  li {
-    position: relative;
-    margin-bottom: 1.1em;
-    padding-left: 1.1em;
-    border-left: 2px solid var(--global-border-color);
-    transition: border-color 0.2s ease-out;
-
-    &:hover {
-      border-left-color: var(--global-link-color);
-    }
-  }
-
-  .edu-list__degree {
-    display: block;
-    font-weight: bold;
-    line-height: 1.4;
-  }
-
-  .edu-list__school {
-    display: block;
-    font-size: 0.95em;
-  }
-
-  .edu-list__date {
-    display: block;
-    font-size: 0.8em;
-    color: var(--global-base-color);
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --paper: #0d1316;
+    --paper-raised: #141c20;
+    --paper-glass: rgba(13, 19, 22, 0.82);
+    --ink: #e7edec;
+    --ink-soft: #b5c0c2;
+    --muted: #8a979b;
+    --rule: #243035;
+    --rule-strong: #3a484e;
+    --accent: #4cc1d4;
+    --accent-strong: #8ad8e5;
+    --accent-wash: rgba(76, 193, 212, 0.14);
+    --signal: #f08c74;
+    --on-accent: #0d1316;
   }
 }
 
 /* --------------------------------------------------------------------------
-   Publication cards
+   Base
    -------------------------------------------------------------------------- */
 
-.pub-card {
-  margin-bottom: 2em;
+html {
+  background-color: var(--paper);
+}
+
+body {
+  font-family: var(--font-sans);
+  line-height: 1.65;
+  color: var(--ink-soft);
+  background-color: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-kerning: normal;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+
+::selection {
+  color: var(--on-accent);
+  background: var(--accent);
+}
+
+a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+a:focus {
+  outline: none;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
   overflow: hidden;
-  background-color: var(--global-bg-color);
-  border: 1px solid var(--global-border-color);
-  border-radius: 6px;
-  transition: transform 0.25s ease-out, box-shadow 0.25s ease-out,
-    border-color 0.25s ease-out;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Display type: page titles and section heads on every page.
+   (The CV writes its sections as setext "====" headings, i.e. h1s.) */
+.page__title,
+.page__content > h2,
+.archive > h1:not(.page__title),
+.archive > h2,
+.archive__item-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.page__title {
+  margin-bottom: 0.6em;
+  font-size: 2.2rem;
+  line-height: 1.08;
+
+  @include breakpoint($medium) {
+    font-size: 2.6rem;
+  }
+}
+
+.page__content > h2,
+.archive > h1:not(.page__title),
+.archive > h2 {
+  margin-top: 1.8em;
+  font-size: 1.6rem;
+  line-height: 1.2;
+}
+
+.archive__item-title {
+  font-size: 1.2rem;
+  line-height: 1.3;
+
+  a {
+    color: var(--ink);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--accent);
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------------- */
+
+/* .archive / .page__content underline every link; a button is not a link in
+   running text */
+.btn,
+a.btn,
+.archive a.btn,
+.page__content a.btn {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+  border-radius: 2px;
+  transition: background-color var(--dur-2) ease, color var(--dur-2) ease;
+}
+
+.btn--info {
+  color: var(--on-accent) !important;
+  background-color: var(--accent);
 
   &:hover {
-    transform: translateY(-3px);
-    border-color: rgba($accent-color, 0.40);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
-  }
-}
-
-.pub-card__figure {
-  overflow: hidden;
-  line-height: 0;
-  background-color: var(--global-code-background-color);
-  border-bottom: 1px solid var(--global-border-color);
-
-  img {
-    width: 100%;
-    transition: transform 0.4s ease-out;
-  }
-
-  &:hover img {
-    transform: scale(1.02);
-  }
-}
-
-.pub-card__body {
-  padding: 1.25em 1.4em 1.4em;
-}
-
-.pub-card__venue {
-  display: inline-block;
-  margin-bottom: 0.6em;
-  padding: 0.2em 0.7em;
-  font-size: 0.72em;
-  font-weight: bold;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--global-link-color);
-  background-color: rgba($accent-color, 0.12);
-  border-radius: 3px;
-}
-
-.pub-card__title {
-  margin: 0 0 0.4em;
-  font-size: 1.15em;
-  line-height: 1.35;
-}
-
-.pub-card__authors {
-  margin: 0 0 0.7em;
-  font-size: 0.85em;
-  color: var(--global-base-color);
-}
-
-.pub-card__desc {
-  margin: 0 0 1em;
-  font-size: 0.9em;
-  line-height: 1.65;
-}
-
-.pub-card__actions {
-  margin: 0;
-
-  .btn {
-    margin-right: 0.4em;
-    margin-bottom: 0.3em;
-    font-size: 0.75em;
-    transition: transform 0.2s ease-out, background-color 0.2s ease-out,
-      color 0.2s ease-out;
-
-    &:hover {
-      transform: translateY(-2px);
-    }
+    background-color: var(--accent-strong);
   }
 }
 
@@ -238,14 +256,153 @@ $accent-color: #2f7f93;
    The theme's own .btn--inverse renders near-invisible text
    (--global-text-color-light on a white background), so this replaces it. */
 .btn--ghost {
-  color: var(--global-link-color) !important;
+  color: var(--accent) !important;
   background-color: transparent;
-  border: 1px solid rgba($accent-color, 0.45) !important;
+  border: 1px solid var(--accent) !important;
 
   &:hover {
-    color: #fff !important;
-    background-color: var(--global-link-color);
-    border-color: var(--global-link-color) !important;
+    color: var(--on-accent) !important;
+    background-color: var(--accent);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Masthead: glass ground, hairline appears only once the page has scrolled
+   -------------------------------------------------------------------------- */
+
+.masthead {
+  background: var(--paper-glass);
+  -webkit-backdrop-filter: saturate(1.3) blur(12px);
+  backdrop-filter: saturate(1.3) blur(12px);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--dur-3) ease;
+}
+
+.is-scrolled .masthead {
+  border-bottom-color: var(--rule);
+}
+
+.masthead__inner-wrap {
+  font-family: var(--font-sans);
+}
+
+.masthead__menu-item {
+  background-color: transparent;
+  font-size: 0.9rem;
+}
+
+.masthead__menu-item--lg a {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--ink) !important;
+}
+
+.greedy-nav {
+  background: transparent;
+
+  .visible-links a:before {
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .visible-links li:first-child a:before {
+    display: none;
+  }
+
+  button {
+    background-color: var(--ink);
+  }
+
+  .navicon,
+  .navicon:before,
+  .navicon:after {
+    background: var(--paper);
+  }
+
+  .hidden-links {
+    background: var(--paper);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+
+    &:after {
+      border-color: var(--paper) transparent;
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Footer
+   -------------------------------------------------------------------------- */
+
+.page__footer {
+  background-color: var(--paper);
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+
+  footer {
+    padding-top: 0.5em;
+  }
+
+  a:hover {
+    color: var(--accent);
+  }
+}
+
+.page__footer-follow,
+.page__footer-follow .social-icons,
+.page__footer-copyright {
+  font-family: var(--font-mono);
+}
+
+/* --------------------------------------------------------------------------
+   Sidebar (every page except home)
+   -------------------------------------------------------------------------- */
+
+.author__name {
+  font-family: var(--font-display) !important;
+  font-size: 1.4rem !important;
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+.author__avatar img {
+  border-color: var(--rule);
+}
+
+/* GitHub's brand near-black vanishes on the dark ground */
+.social-icons .fa-github {
+  color: var(--ink);
+}
+
+.author__urls {
+  &:after {
+    border-color: var(--paper) transparent;
+  }
+
+  a {
+    color: var(--ink-soft);
+
+    &:hover {
+      color: var(--accent);
+    }
+  }
+}
+
+/* The sidebar "Follow" button only shows below the $large breakpoint, where the
+   theme paints it in --global-text-color-light (~1.9:1 on white — unreadable).
+   Give it real contrast on the screens that actually display it. */
+.author__urls-wrapper button.btn--inverse {
+  color: var(--ink) !important;
+  background-color: transparent;
+  border: 1px solid var(--rule-strong) !important;
+
+  &:hover {
+    color: var(--on-accent) !important;
+    background-color: var(--accent);
+    border-color: var(--accent) !important;
   }
 }
 
@@ -255,11 +412,12 @@ $accent-color: #2f7f93;
 
 .cv-role {
   margin: 1.75em 0 0.75em;
-  font-size: 0.8em;
-  font-weight: bold;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--global-base-color);
+  color: var(--accent);
 }
 
 .page__content .cv-entry__title {
@@ -268,12 +426,16 @@ $accent-color: #2f7f93;
   line-height: 1.4;
 }
 
+.page__content h3 {
+  color: var(--ink);
+}
+
 /* Institution · advisor · dates — one quiet line, never a table */
 .cv-meta {
   margin: 0 0 0.6em;
   font-size: 0.85em;
   line-height: 1.5;
-  color: var(--global-base-color);
+  color: var(--muted);
 
   .cv-meta__sep {
     padding: 0 0.35em;
@@ -291,27 +453,123 @@ $accent-color: #2f7f93;
 }
 
 /* --------------------------------------------------------------------------
-   Sidebar
+   Reduced motion: nothing on this site animates for people who ask not to
    -------------------------------------------------------------------------- */
 
-.author__avatar img {
-  transition: transform 0.3s ease-out;
-
-  &:hover {
-    transform: scale(1.04);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
-/* The sidebar "Follow" button only shows below the $large breakpoint, where the
-   theme paints it in --global-text-color-light (~1.9:1 on white — unreadable).
-   Give it real contrast on the screens that actually display it. */
-.author__urls-wrapper button.btn--inverse {
-  color: var(--global-text-color) !important;
-  transition: background-color 0.2s ease-out, color 0.2s ease-out;
+/* --------------------------------------------------------------------------
+   Pixel Miku: stands on the footer's top rule (assets/js/pixel-miku.js).
+   The stage is only a line to walk on; she and her notes are the only
+   things that take the pointer.
+   -------------------------------------------------------------------------- */
 
-  &:hover {
-    color: #fff !important;
-    background-color: var(--global-link-color);
-    border-color: var(--global-link-color) !important;
+.miku-stage {
+  --s: 2;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: calc(100% - 2em);
+  max-width: calc(#{$x-large} - 2em);
+  height: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+
+  @include breakpoint($medium) {
+    --s: 3;
+  }
+}
+
+.miku,
+.miku-shadow,
+.miku-note {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+
+.miku {
+  width: calc(32px * var(--s));
+  height: calc(34px * var(--s));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translate3d(var(--x, 0px), var(--y, 0px), 0);
+  -webkit-tap-highlight-color: transparent;
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+    transform: scaleX(var(--dir, 1));
+  }
+
+  &:focus-visible {
+    outline: 2px dashed var(--accent);
+    outline-offset: 4px;
+  }
+}
+
+.miku-shadow {
+  width: calc(18px * var(--s));
+  height: calc(3px * var(--s));
+  margin-left: calc(7px * var(--s));
+  bottom: calc(-1.5px * var(--s));
+  border-radius: 50%;
+  background: rgba(17, 24, 28, 0.16);
+  transform: translate3d(var(--x, 0px), 0, 0) scale(var(--shadow, 1));
+}
+
+.miku-note {
+  width: calc(9px * var(--s));
+  height: calc(11px * var(--s));
+  background-size: 100% 100%;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  pointer-events: none;
+  animation: miku-note 1.6s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes miku-note {
+  0% {
+    opacity: 0;
+    transform: translate3d(var(--nx), var(--ny), 0) scale(0.6);
+  }
+  12% {
+    opacity: 1;
+    transform: translate3d(var(--nx), calc(var(--ny) - 10px), 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(var(--nx) + var(--drift)), calc(var(--ny) - 90px), 0) scale(1);
+  }
+}
+
+/* Dark ground: a faint rim so the dark skirt and boots keep their outline */
+@media (prefers-color-scheme: dark) {
+  .miku canvas {
+    filter:
+      drop-shadow(1px 0 0 rgba(231, 237, 236, 0.28))
+      drop-shadow(-1px 0 0 rgba(231, 237, 236, 0.28))
+      drop-shadow(0 -1px 0 rgba(231, 237, 236, 0.28));
+  }
+
+  .miku-shadow {
+    background: rgba(0, 0, 0, 0.45);
   }
 }

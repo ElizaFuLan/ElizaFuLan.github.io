@@ -9,41 +9,23 @@
 <link rel="icon" type="image/png" href="{{ base_path }}/images/favicon-192x192.png" sizes="192x192"/>
 <link rel="manifest" href="{{ base_path }}/images/manifest.json"/>
 <link rel="icon" href="/images/favicon.ico"/>
-<meta name="theme-color" content="#ffffff"/>
+<meta name="theme-color" content="#f4f4f0" media="(prefers-color-scheme: light)"/>
+<meta name="theme-color" content="#0d1316" media="(prefers-color-scheme: dark)"/>
+<meta name="color-scheme" content="light dark"/>
 <link rel="stylesheet" href="{{ base_path }}/assets/css/academicons.css"/>
 
+<!-- The two faces every page paints above the fold -->
+<link rel="preload" href="{{ base_path }}/assets/fonts/ibm-plex-sans-var.woff2" as="font" type="font/woff2" crossorigin/>
+<link rel="preload" href="{{ base_path }}/assets/fonts/newsreader-var.woff2" as="font" type="font/woff2" crossorigin/>
 
 <!-- Support for MatJax -->
 <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-<!-- Reveal elements as they scroll into view.
-     NOTE: compress_html collapses this file to a single line, so this script
-     must never use // line comments — they would swallow the rest of the code. -->
-<script>
-  /* Purely additive: this only ADDS an entrance animation to already-visible
-     content. If any of it fails, the page still renders in full. */
-  document.addEventListener("DOMContentLoaded", function () {
-    if (!("IntersectionObserver" in window)) { return; }
-
-    var items = document.querySelectorAll(".reveal");
-    if (!items.length) { return; }
-
-    try {
-      var observer = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (!entry.isIntersecting) { return; }
-          entry.target.classList.add("is-visible");
-          observer.unobserve(entry.target);
-        });
-      }, { rootMargin: "0px 0px -8% 0px", threshold: 0.05 });
-
-      for (var i = 0; i < items.length; i++) {
-        items[i].style.animationDelay = Math.min(i * 60, 240) + "ms";
-        observer.observe(items[i]);
-      }
-    } catch (e) { /* no animation, content unaffected */ }
-  });
-</script>
+<!-- Site motion lives in its own file: compress_html collapses this include
+     to one line, which is what broke the old inline script. -->
+<script defer src="{{ base_path }}/assets/js/site-motion.js?v={{ site.time | date: '%s' }}"></script>
+<script defer src="{{ base_path }}/assets/js/pixel-miku.js?v={{ site.time | date: '%s' }}"></script>
+<script defer src="{{ base_path }}/assets/js/verify-loop.js?v={{ site.time | date: '%s' }}"></script>
 
 <!-- end custom head snippets -->
