@@ -1,16 +1,23 @@
-/* Pixel Mikus: three hand-authored 32x42 sprites who live on the footer rule.
+/* Pixel Mikus: three hand-authored 32x42 sprites who float along the bottom
+   of the window, and land on the footer rule when the page reaches it.
 
      classic   the avatar's Miku: flower in her hair, sings notes
      snow      Snow Miku: silver-blue hair, earmuffs and a snowflake scarf;
                flakes drift down around her and she throws them when she jumps
-     rabbit    Rabbit Hole Miku (DECO*27): bunny ears, black bunny suit with
-               an open heart, fishnets; she hops instead of walking, and her
-               song is hearts
+     rabbit    Rabbit Hole Miku, after the reference illustration: periwinkle
+               hair, sheer lavender bunny ears, crimson bow tie, black bunny
+               suit with an open heart, fishnets; she hops instead of walking
+               and her song is hearts and playing cards
 
-   Together they breathe, blink, sway their tails and wander along the line
-   without ever overlapping. Bring the pointer near and they gather round it
-   in a row; hover one and she waves; click one (or press Enter) and she
-   jumps and sings while the other two hop along.
+   Hair is simulated, not drawn: each twin tail is a wave travelling from root
+   to tip, the two tails out of phase; it trails behind a walk, drags on the
+   way up a jump and flares on the way down, and keeps swinging for a moment
+   after she stops.
+
+   Together they wander without overlapping; bring the pointer near and they
+   gather round it; hover one and she waves; click one (or press Enter) and
+   she jumps and sings while the other two hop along. A small switch tucks
+   them away and remembers it.
 
    Decorative and additive: without JS nothing is drawn; with reduced motion
    they stand still and only change expression when pressed. */
@@ -66,7 +73,7 @@
   function bend(p, n, dx) {
     return part(p.x, p.y, p.rows.map(function (r, i) {
       if (i >= n) { return r; }
-      return dx > 0 ? new Array(dx + 1).join(".") + r : r.slice(-dx) + ".";
+      return dx > 0 ? new Array(dx + 1).join(".") + r : r.slice(-dx) + new Array(-dx + 1).join(".");
     }));
   }
 
@@ -75,6 +82,8 @@
       return r.replace(/./g, function (ch) { return map[ch] || ch; });
     }));
   }
+
+  function pair(p) { return [p, mirror(p)]; }
 
   var HEAD = part(7, 0, [
     ".....oooooooo.....",
@@ -149,9 +158,8 @@
 
   var LEG_L = part(11, 28, [".oSSo", ".oKKo", ".oKKo", ".oHHo", "oKKKo", "ooooo"]);
 
-  /* Twin tails are generated, not drawn: a mask along a curve, outlined on
-     its own border, shaded on the inner edge. `sway` bends the lower half;
-     `tips` fades the ends to pink (Rabbit Hole). */
+  /* ------------------------------------------------------------- hair --- */
+
   function outlined(cells, paintCell) {
     var xs = [], ys = [];
     Object.keys(cells).forEach(function (k) {
@@ -174,33 +182,53 @@
     return part(x0, y0, rows);
   }
 
-  function tailL(sway, tips) {
+  /* One (left) tail. `offsetAt(t)` bends it, t = 0 at the root, 1 at the tip;
+     `flare` swings the lower half outward and up, as when falling. */
+  function tailL(offsetAt, flare, tips) {
     var cells = {};
-    for (var y = 3; y <= 32; y++) {
+    var yEnd = 32 - Math.round(flare * 2);
+    for (var y = 3; y <= yEnd; y++) {
       var w = y < 10 ? 3 + (y - 3) * 0.47 : y < 22 ? 6.3 : Math.max(1.2, 6.3 - (y - 22) * 0.55);
       var cx = y < 10 ? 6.8 - (y - 3) * 0.44 : 3.7 + Math.max(0, y - 25) * 0.14;
-      var off = sway * Math.pow(Math.max(0, (y - 9) / 23), 1.3) * 1.7;
+      var t = Math.max(0, (y - 9) / 23);
+      var off = offsetAt(t) - flare * Math.pow(t, 1.4) * 2.4;
       var a = Math.round(cx + off - w / 2);
       var b = Math.round(cx + off + w / 2) - 1;
       for (var x = a; x <= b; x++) { cells[x + "," + y] = 1; }
     }
     return outlined(cells, function (x, y, has) {
-      if (tips && y >= 25) { return y >= 28 ? "q" : "L"; }
+      if (tips && y >= 26) { return y >= 29 ? "q" : "L"; }
       if (!has(x + 2, y)) { return "h"; }
       if (!has(x - 2, y) && y > 7 && y < 21) { return "L"; }
       return "H";
     });
   }
 
-  function tails(tips) {
-    var t = {};
-    [-1, 0, 1].forEach(function (s) {
-      t[s] = { l: tailL(s, tips), r: mirror(tailL(-s, tips)) };
-    });
-    return t;
+  /* hair = [phase step (0-15), amplitude, lean, flare]; both tails are built
+     in world terms, then the right one is mirrored into place. The right
+     tail runs a little behind the left, so they never move as one. */
+  function tailsFor(v, hair) {
+    var key = hair.join(",");
+    var hit = v.tailCache[key];
+    if (hit) { return hit; }
+    var phase = hair[0] / 16 * Math.PI * 2;
+    var amp = hair[1];
+    var lean = hair[2];
+    var flare = hair[3];
+    var world = function (lag) {
+      return function (t) {
+        return lean * Math.pow(t, 1.3) * 1.8 + amp * Math.pow(t, 1.2) * Math.sin(phase + lag - 2.6 * t);
+      };
+    };
+    var l = world(0);
+    var r = world(0.8);
+    hit = {
+      l: tailL(l, flare, v.tips),
+      r: mirror(tailL(function (t) { return -r(t); }, flare, v.tips))
+    };
+    v.tailCache[key] = hit;
+    return hit;
   }
-
-  function pair(p) { return [p, mirror(p)]; }
 
   /* ----------------------------------------------------------- classic --- */
 
@@ -208,8 +236,8 @@
     name: "classic",
     label: "Pixel-art Hatsune Miku",
     pal: PAL,
-    tails: tails(false),
-    earsBack: [],
+    tips: false,
+    earsBack: null,
     ties: pair(TIE_L),
     torso: TORSO,
     overlays: [],
@@ -231,7 +259,6 @@
 
   /* -------------------------------------------------------------- snow --- */
 
-  var SNOW_ARM = recolor(ARM_DOWN_L, { S: "G" });
   var SNOW_UP = recolor(ARM_UP_L, { S: "G" });
   var EARMUFF = part(4, 8, [".ooo.", "oXXXo", "oXFXo", "oXXXo", ".ooo."]);
 
@@ -247,8 +274,8 @@
       w: "#8fc0ee", B: "#f6b5c2",
       F: "#5b98df", X: "#ffffff"
     }),
-    tails: tails(false),
-    earsBack: [],
+    tips: false,
+    earsBack: null,
     ties: pair(recolor(TIE_L, { R: "F", P: "X" })),
     torso: TORSO,
     /* scarf with a snowflake print; one end hangs where the tie was */
@@ -261,7 +288,7 @@
       "..oXXo..",
       "...oo..."
     ])],
-    armDown: pair(SNOW_ARM),
+    armDown: pair(recolor(ARM_DOWN_L, { S: "G" })),
     armUp: pair(SNOW_UP),
     armWave: mirror(bend(SNOW_UP, 5, 1)),
     legs: pair(LEG_L),
@@ -275,69 +302,81 @@
 
   /* ------------------------------------------------------------ rabbit --- */
 
-  var EAR_L = part(10, -8, [".oo.", "oQQo", "oQqo", "oQqo", "oQqo", "oQqo", "oQqo", "oQQo", "oQQo"]);
-  var RABBIT_LEG = part(11, 25, [
-    ".oSSo",
-    ".oSSo",
-    ".oWWo",
-    ".onSo",
-    ".oSno",
-    ".onSo",
-    ".oSno",
-    "oKKKo",
-    "ooooo"
-  ]);
+  /* Sheer lavender ears with a white rim, spread in a V; airborne, they
+     splay further */
+  var EAR = part(9, -8, [".ooo.", "oWQQo", "oWuQo", "oWuQo", "oWuQo", "oQuQo", "oQuQo", "oQQQo", "oQQQo"]);
+  var EAR_TILT = bend(bend(EAR, 5, -1), 2, -1);
+  var EAR_SPLAY = bend(bend(bend(EAR, 6, -1), 4, -1), 2, -1);
+
   var RABBIT_UP = recolor(ARM_UP_L, { K: "S", w: "S" });
 
   var RABBIT = {
     name: "rabbit",
     label: "Pixel-art Rabbit Hole Miku",
     pal: merge(PAL, {
-      o: "#1c1b25",
-      H: "#8edbe2", h: "#5fb4c4", L: "#f7bddb",
-      E: "#33b0bf", e: "#113c49", W: "#ffd5ea",
-      G: "#24232d", g: "#3c3b49",
-      K: "#24232d", k: "#3c3b49",
-      w: "#ffffff",
-      P: "#f58fb8", R: "#df5f9a", M: "#b8475f",
-      n: "#2d2735", Q: "#ffffff", q: "#f6a8c8"
+      o: "#1f1a2e",
+      H: "#8fa8e0", h: "#5d6fbf", L: "#c9d7f7", q: "#a697dc",
+      E: "#7d8fd8", e: "#262a58", W: "#ffffff",
+      B: "#f3a6c0", M: "#7e2a45", p: "#e0607e",
+      R: "#c42a5a", r: "#8e1c43",
+      G: "#2b2138", g: "#4a3b5e",
+      K: "#1f1a2e", k: "#3a2d3c",
+      P: "#e24f8f",
+      Q: "#d9d1e6", u: "#b3a5c8",
+      n: "#6a5667", N: "#3a2d3c",
+      w: "#ffffff"
     }),
-    tails: tails(true),
-    /* ears grow from behind the head; the right one flops outward */
-    earsBack: [EAR_L, mirror(bend(EAR_L, 4, -1))],
+    tips: true,
+    earsBack: { rest: [EAR_TILT, mirror(EAR_TILT)], splay: [EAR_SPLAY, mirror(EAR_SPLAY)] },
     ties: pair(recolor(TIE_L, { R: "K", P: "K" })),
-    /* bunny suit: bare shoulders, pink bow, the open heart on the chest */
+    /* crimson bow tie on a bare neck; strapless black suit with a pink
+       neckline; the open heart low on the front */
     torso: part(9, 16, [
       ".....oSSo.....",
+      "...oSRrrRSo...",
       "...oSSSSSSo...",
-      "...oGPRRPGo...",
+      "...oPgGGgPo...",
+      "...oGgGGgGo...",
+      "...oGGGGGGo...",
       "...oGSGSGGo...",
       "...oSSSSSGo...",
       "...oGSSSGGo...",
       "...oGGSGGGo...",
-      "...oGGGGGGo...",
-      "...oGgGGgGo...",
       "...ooGGGGoo...",
       ".....oooo....."
     ]),
     overlays: [],
-    /* pink ribbon round one arm, a white brace on the other wrist */
+    /* a black band on one upper arm; a white cuff and pink ribbon on the
+       other wrist */
     armDown: [
-      part(10, 17, [".o", "oS", "oS", "oP", "oS", "oS", "oS", ".o"]),
-      mirror(part(10, 17, [".o", "oS", "oS", "oS", "oS", "ow", "oS", ".o"]))
+      part(10, 17, [".o", "oS", "oK", "oS", "oS", "oS", "oS", ".o"]),
+      mirror(part(10, 17, [".o", "oS", "oS", "oS", "oP", "ow", "oS", ".o"]))
     ],
     armUp: pair(RABBIT_UP),
     armWave: mirror(bend(RABBIT_UP, 5, 1)),
-    legs: pair(RABBIT_LEG),
-    /* the sassy smirk */
-    faceBase: ["........SMM......."],
+    /* fishnets all the way up, black heels */
+    legs: pair(part(11, 26, [
+      ".onno",
+      ".onNo",
+      ".oNno",
+      ".onNo",
+      ".oNno",
+      ".onNo",
+      "oKKKo",
+      "ooooo"
+    ])),
+    /* a red mark under one eye and a small, surprised "o" */
+    faceBase: [
+      ".....R..MM........",
+      "........MM........"
+    ],
     accessories: [
-      part(10, 2, ["QQQQQQQQQQQQ"]),        /* white headband */
-      part(10, 3, ["R.R", "RRR", ".R."]),   /* pink heart */
-      part(20, 3, ["K.K", ".K.", "K.K"])    /* black X clip */
+      part(10, 5, ["W.W", ".W.", "W.W"])    /* white X clip on the fringe */
     ],
     gait: "hop"
   };
+
+  [CLASSIC, SNOW, RABBIT].forEach(function (v) { v.tailCache = {}; });
 
   var VARIANTS = { classic: CLASSIC, snow: SNOW, rabbit: RABBIT };
   var ORDER = ["classic", "snow", "rabbit"];
@@ -356,15 +395,22 @@
     }
   }
 
-  /* f: { bob, sway, legL, legR, arms: down|up|wave|waveB, face } */
+  var REST_HAIR = [0, 0, 0, 0];
+
+  /* f: { bob, hair: [phase, amp, lean, flare], legL, legR,
+          arms: down|up|wave|waveB, face } */
   function draw(ctx, f, v) {
     var pal = v.pal;
     var b = f.bob || 0;
     var P = function (p, dy) { paint(ctx, pal, p, 0, dy === undefined ? b : dy); };
     ctx.clearRect(0, 0, W, H);
-    var t = v.tails[f.sway || 0];
+    var hair = f.hair || REST_HAIR;
+    var t = tailsFor(v, hair);
     P(t.l); P(t.r);
-    v.earsBack.forEach(function (p) { P(p); });
+    if (v.earsBack) {
+      var ears = hair[3] >= 1 ? v.earsBack.splay : v.earsBack.rest;
+      P(ears[0]); P(ears[1]);
+    }
     P(v.legs[0], f.legL || 0);
     P(v.legs[1], f.legR || 0);
     P(v.torso);
@@ -411,6 +457,18 @@
     return o;
   }
 
+  /* A playing card, as scattered in the reference */
+  function card() {
+    var c = document.createElement("canvas");
+    c.width = 7; c.height = 9;
+    var g = c.getContext("2d");
+    g.fillStyle = "#1f1a2e"; g.fillRect(0, 0, 7, 9);
+    g.fillStyle = "#ffffff"; g.fillRect(1, 1, 5, 7);
+    g.fillStyle = "#c42a5a";
+    [[2, 3], [4, 3], [2, 4], [3, 4], [4, 4], [3, 5]].forEach(function (p) { g.fillRect(p[0], p[1], 1, 1); });
+    return c.toDataURL();
+  }
+
   var NOTE = cellsOf([[4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6], [4, 7], [5, 1], [5, 2], [6, 2], [6, 3], [6, 4],
     [2, 6], [3, 6], [1, 7], [2, 7], [3, 7], [1, 8], [2, 8], [3, 8]]);
   var HEART = cellsOf([[2, 1], [3, 1], [5, 1], [6, 1], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2], [7, 2],
@@ -423,7 +481,7 @@
       return [sprite(7, 7, FLAKE, "#5b98df", null, [3, 3]), sprite(7, 7, FLAKE, "#9cc7f2", null, [3, 3])];
     }
     if (v.name === "rabbit") {
-      return [sprite(9, 7, HEART, "#f58fb8", "#1c1b25", [2, 2]), sprite(9, 7, HEART, "#df5f9a", "#1c1b25", [2, 2])];
+      return [sprite(9, 7, HEART, "#e24f8f", "#1f1a2e", [2, 2]), card()];
     }
     return [sprite(9, 11, NOTE, PAL.H, PAL.o, [2, 7]), sprite(9, 11, NOTE, PAL.P, PAL.o, [2, 7])];
   }
@@ -435,23 +493,48 @@
 
   /* ------------------------------------------------------------ stage --- */
 
+  /* The stage floats over the page; it lives in <body> so no ancestor can
+     capture its fixed positioning */
+  document.body.appendChild(host);
+  host.classList.add("is-floating");
+
   var reduce = window.matchMedia &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var scale = 3;
   var stageW = 0;
+  var toggle = null;
   var spriteW = W * scale;
   function measure() {
     scale = parseFloat(getComputedStyle(host).getPropertyValue("--s")) || 3;
-    stageW = host.clientWidth;
+    /* leave the corner to the hide switch */
+    stageW = host.clientWidth - (toggle ? toggle.offsetWidth + 12 : 0);
     spriteW = W * scale;
   }
   measure();
 
+  /* At the foot of the page they stand on the footer rule instead of over
+     the footer's links */
+  var footer = document.querySelector(".page__footer");
+  var liftQueued = false;
+  function lift() {
+    liftQueued = false;
+    var gap = footer ? window.innerHeight - footer.getBoundingClientRect().top : 0;
+    host.style.setProperty("--lift", Math.max(0, Math.round(gap)) + "px");
+  }
+  function queueLift() {
+    if (!liftQueued) { liftQueued = true; window.requestAnimationFrame(lift); }
+  }
+  window.addEventListener("scroll", queueLift, { passive: true });
+  /* the footer also moves without any scroll: late images, fonts, a
+     collapsing section all change the page's height */
+  if ("ResizeObserver" in window) { new ResizeObserver(queueLift).observe(document.body); }
+  lift();
+
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function snap(v) { return Math.round(v / scale) * scale; }
 
-  var spots = stageW > 700 ? [0.6, 0.72, 0.84] : [0.2, 0.5, 0.8];
+  var spots = stageW > 700 ? [0.62, 0.74, 0.86] : [0.18, 0.5, 0.82];
 
   var chars = ORDER.map(function (name, i) {
     var v = VARIANTS[name];
@@ -475,9 +558,37 @@
       jumpT: -1, jumpDur: 0.56, jumpH: 14, hopPhase: 0, running: false,
       hover: false, blinkAt: 0, waveUntil: 0, happyUntil: 0, squashUntil: 0,
       nextWander: 1500 + i * 1700, nextIdleHop: 4000 + Math.random() * 4000,
-      nextFlake: 1200, frame: ""
+      nextFlake: 1200, frame: "",
+      /* hair state: phase runs continuously; kick is the swing left over
+         from a stop or a landing, and dies away */
+      hairPhase: i * 2.1, kick: 0
     };
   });
+
+  var running = false;
+  var raf = 0;
+  var last = 0;
+  var greeted = false;
+
+  /* The switch that tucks them away, remembered per visitor */
+  var away = false;
+  try { away = window.localStorage.getItem("miku-away") === "1"; } catch (e) { /* private mode */ }
+  toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "miku-toggle";
+  host.appendChild(toggle);
+  function setAway(on) {
+    away = on;
+    host.classList.toggle("is-away", on);
+    toggle.textContent = on ? "♪ Miku" : "Hide";
+    toggle.setAttribute("aria-label", on ? "Show the pixel Mikus" : "Hide the pixel Mikus");
+    toggle.setAttribute("aria-pressed", on ? "true" : "false");
+    chars.forEach(function (c) { c.btn.tabIndex = on ? -1 : 0; });
+    try { window.localStorage.setItem("miku-away", on ? "1" : "0"); } catch (e) { /* private mode */ }
+  }
+  setAway(away);
+  measure();
+  chars.forEach(function (c) { c.x = clamp(c.x, 0, Math.max(0, stageW - spriteW)); });
 
   function place(c) {
     c.btn.style.setProperty("--x", snap(c.x) + "px");
@@ -530,23 +641,24 @@
   api.state = function () {
     return chars.map(function (c) {
       return { name: c.v.name, x: c.x, y: c.y, dir: c.dir, mode: c.mode, target: c.target,
-               frame: c.frame, running: running, scale: scale, stageW: stageW };
+               frame: c.frame, running: running, away: away, scale: scale, stageW: stageW };
     });
   };
 
   /* Reduced motion: still frames; pressing changes expression only */
-  var running = false;
   if (reduce) {
-    var still = { bob: 0, sway: 0, legL: 0, legR: 0, arms: "down", face: "open" };
+    var still = { bob: 0, hair: REST_HAIR, legL: 0, legR: 0, arms: "down", face: "open" };
     chars.forEach(function (c) {
       c.dir = 1;
       place(c);
       show(c, still);
       c.btn.addEventListener("click", function () {
-        show(c, { bob: 0, sway: 0, legL: 0, legR: 0, arms: "up", face: "happy" });
+        show(c, { bob: 0, hair: REST_HAIR, legL: 0, legR: 0, arms: "up", face: "happy" });
         window.setTimeout(function () { show(c, still); }, 900);
       });
     });
+    toggle.addEventListener("click", function () { setAway(!away); });
+    window.addEventListener("resize", function () { measure(); lift(); });
     return;
   }
 
@@ -585,10 +697,10 @@
     c.btn.addEventListener("pointerleave", function () { c.hover = false; });
   });
 
-  /* The pointer only calls them when it is down near their line */
+  /* The pointer only calls them when it comes down near their floor */
   function near(e) {
     var r = host.getBoundingClientRect();
-    return e.clientY > r.top - 300 && e.clientY < r.top + 160;
+    return e.clientY > r.top - 240 && e.clientY < r.top + 40;
   }
   window.addEventListener("pointermove", function (e) {
     if (e.pointerType !== "mouse" || !running || !near(e)) { return; }
@@ -598,12 +710,14 @@
   window.addEventListener("pointerdown", function (e) {
     if (e.pointerType === "mouse" || !running || !near(e)) { return; }
     for (var i = 0; i < chars.length; i++) { if (chars[i].btn.contains(e.target)) { return; } }
+    if (toggle.contains(e.target)) { return; }
     pointerX = e.clientX - host.getBoundingClientRect().left;
     pointerAt = performance.now();
   }, { passive: true });
 
   window.addEventListener("resize", function () {
     measure();
+    lift();
     chars.forEach(function (c) {
       c.x = clamp(c.x, 0, Math.max(0, stageW - spriteW));
       place(c);
@@ -611,12 +725,15 @@
   });
 
   function step(c, now, dt, following, left, right, maxX) {
+    var wasMoving = c.mode === "walk" || c.mode === "jump";
+
     if (c.jumpT >= 0) {
       c.jumpT += dt / c.jumpDur;
       if (c.jumpT >= 1) {
         c.jumpT = -1;
         c.y = 0;
         c.squashUntil = now + 110;
+        c.kick = Math.max(c.kick, c.jumpH > 10 ? 1.6 : 0.9);
       } else {
         c.y = -c.jumpH * scale * 4 * c.jumpT * (1 - c.jumpT);
       }
@@ -682,6 +799,9 @@
       c.y = 0;
     }
 
+    /* stopping throws the hair forward; it swings on a little */
+    if (wasMoving && c.mode === "idle") { c.kick = Math.max(c.kick, 1.2); }
+
     if (c.mode === "idle" && c.v.gait === "hop" && now > c.nextIdleHop) {
       c.nextIdleHop = now + 5000 + Math.random() * 6000;
       jump(c, 0.42, 7, false);
@@ -708,11 +828,36 @@
     }
     sorted.forEach(function (c, k) {
       step(c, now, dt, following, sorted[k - 1], sorted[k + 1], maxX);
+      /* hair: a travelling wave whose speed follows what she is doing;
+         the leftover swing decays with a half-life of about 0.35 s */
+      var rate = c.mode === "walk" ? (c.running ? 11 : 8) : c.mode === "jump" ? 9 : 3.6;
+      c.hairPhase += dt * rate;
+      c.kick *= Math.exp(-dt * 2);
     });
   }
 
+  function hairFor(c) {
+    var q = function (v, stepSize) { return Math.round(v / stepSize) * stepSize; };
+    var phase = ((Math.round(c.hairPhase / (Math.PI * 2) * 16) % 16) + 16) % 16;
+    var amp = 0.9;
+    var lean = 0;
+    var flare = 0;
+    if (c.mode === "walk") {
+      amp = 0.8;
+      lean = c.running ? -2 : -1.4;   /* sprite-local: trails behind her */
+      if (c.v.gait === "hop" && c.y < -2 * scale) { flare = 1; }
+    } else if (c.mode === "jump") {
+      amp = 0.5;
+      /* dragged down on the way up, flung out on the way down */
+      flare = c.jumpT < 0.45 ? 0 : c.jumpT < 0.7 ? 1 : 1.5;
+      lean = c.jumpT < 0.45 ? 0 : 0.5;
+    }
+    amp += c.kick;
+    return [phase, q(Math.min(amp, 2.5), 0.25), q(lean, 0.5), flare];
+  }
+
   function frameFor(c, now) {
-    var f = { bob: 0, sway: 0, legL: 0, legR: 0, arms: "down", face: "open" };
+    var f = { bob: 0, hair: hairFor(c), legL: 0, legR: 0, arms: "down", face: "open" };
 
     if (now > c.blinkAt + 130) {
       c.blinkAt = now + 2200 + Math.random() * 3400;
@@ -724,7 +869,6 @@
       f.arms = big ? "up" : "down";
       if (big || now < c.happyUntil) { f.face = "happy"; }
       if (c.jumpT > 0.12 && c.jumpT < 0.88) { f.legL = -1; f.legR = -1; }
-      f.sway = c.jumpT < 0.5 ? 1 : -1;
       return f;
     }
     if (now < c.squashUntil) { f.bob = 1; f.face = "happy"; return f; }
@@ -735,18 +879,15 @@
         f.legL = air ? -1 : 0;
         f.legR = air ? -1 : 0;
         f.bob = air ? 0 : 1;
-        f.sway = air ? 1 : -1;
         return f;
       }
       var cyc = Math.floor(now / (c.running ? 90 : 130)) % 4;
       f.legL = cyc === 1 ? -1 : 0;
       f.legR = cyc === 3 ? -1 : 0;
-      f.sway = cyc % 2 ? -1 : 0;
       return f;
     }
 
     f.bob = Math.floor(now / 650) % 2;
-    f.sway = [0, 1, 0, -1][Math.floor(now / 420) % 4];
     if (c.hover || now < c.waveUntil) {
       f.face = "happy";
       f.arms = Math.floor(now / 190) % 2 ? "waveB" : "wave";
@@ -757,16 +898,13 @@
     return f;
   }
 
-  var raf = 0;
-  var last = 0;
-  var greeted = false;
-
   function tick(now) {
     raf = 0;
     if (!running) { return; }
     var dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     update(now, dt);
+    lift();
     chars.forEach(function (c) {
       place(c);
       show(c, frameFor(c, now));
@@ -774,46 +912,33 @@
     raf = window.requestAnimationFrame(tick);
   }
 
-  function setRunning(on) {
-    running = on && document.visibilityState !== "hidden";
+  function setRunning() {
+    running = !away && document.visibilityState !== "hidden";
     if (running && !raf) {
       last = performance.now();
       raf = window.requestAnimationFrame(tick);
     }
+    if (running && !greeted) {
+      greeted = true;
+      /* the invitation: first time they're seen, they wave in turn */
+      chars.forEach(function (c, k) {
+        window.setTimeout(function () {
+          c.waveUntil = performance.now() + 1300;
+          spark(c, 1);
+        }, 700 + k * 450);
+      });
+    }
   }
 
-  var visible = false;
-  var seen = [];
-  if ("IntersectionObserver" in window) {
-    var io = new IntersectionObserver(function (entries) {
-      /* entries only carry the targets that changed; keep the whole picture */
-      entries.forEach(function (e) {
-        var k = seen.indexOf(e.target);
-        if (e.isIntersecting && k < 0) { seen.push(e.target); }
-        if (!e.isIntersecting && k >= 0) { seen.splice(k, 1); }
-      });
-      visible = seen.length > 0;
-      setRunning(visible);
-      if (visible && !greeted) {
-        greeted = true;
-        /* the invitation: first time they're seen, they wave in turn */
-        chars.forEach(function (c, k) {
-          window.setTimeout(function () {
-            c.waveUntil = performance.now() + 1300;
-            spark(c, 1);
-          }, 500 + k * 450);
-        });
-      }
-    }, { rootMargin: "120px 0px 0px 0px" });
-    chars.forEach(function (c) { io.observe(c.btn); });
-  } else {
-    visible = true;
-    setRunning(true);
-  }
-  document.addEventListener("visibilitychange", function () { setRunning(visible); });
+  toggle.addEventListener("click", function () {
+    setAway(!away);
+    setRunning();
+  });
+  document.addEventListener("visibilitychange", setRunning);
 
   chars.forEach(function (c) {
     place(c);
     show(c, frameFor(c, performance.now()));
   });
+  setRunning();
 })();

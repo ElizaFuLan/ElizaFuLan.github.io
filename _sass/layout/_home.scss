@@ -465,6 +465,11 @@
   }
 }
 
+/* The verification loop sits under the entry's text, after its links */
+.pub__links + .pub__loop {
+  margin: 2.25rem 0 0;
+}
+
 .pub__meta {
   display: flex;
   flex-wrap: wrap;

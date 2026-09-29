@@ -485,8 +485,66 @@ a.btn,
   transform: translateX(-50%);
   pointer-events: none;
 
-  @include breakpoint($medium) {
+  /* floating over the page, they are kept small until the screen is wide */
+  @include breakpoint($x-large) {
     --s: 3;
+  }
+}
+
+/* With JS the stage floats along the bottom of the window; --lift raises it
+   onto the footer rule once the footer scrolls into view */
+.miku-stage.is-floating {
+  position: fixed;
+  z-index: 30;
+  bottom: 0;
+  bottom: env(safe-area-inset-bottom, 0px);
+  transform: translate(-50%, calc(-1 * var(--lift, 0px)));
+}
+
+.miku-stage.is-away {
+  .miku,
+  .miku-shadow,
+  .miku-note,
+  .miku-flake {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+.miku,
+.miku-shadow {
+  transition: opacity var(--dur-3) ease, visibility var(--dur-3);
+}
+
+/* Tuck them away / call them back */
+.miku-toggle {
+  position: absolute;
+  right: 0;
+  bottom: 6px;
+  z-index: 2;
+  padding: 0.3em 0.7em;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--paper-glass);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: color var(--dur-2) ease, border-color var(--dur-2) ease;
+
+  &:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 }
 

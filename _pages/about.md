@@ -45,20 +45,13 @@ hero_spec: "Making large language model +inference | fast and ~efficient ~under 
   <div class="home-section__body">
 
     <article class="pub">
-      <figure class="pub__loop">
-        <!-- Animated by assets/js/verify-loop.js; the image is the no-script fallback -->
-        <div class="vloop" data-vloop>
-          <a href="/images/publications/cats-verify-loop.png" target="_blank" rel="noopener">
-            <img src="/images/publications/cats-verify-loop.png"
-                 alt="CATS full verification loop: drafting, shallow verification, put back and draft, main and correction branch comparison"
-                 width="2275" height="675" loading="lazy" decoding="async">
-          </a>
-        </div>
-        <figcaption>
-          The full verification loop, left to right ·
-          <a href="/images/publications/cats-verify-loop.png" target="_blank" rel="noopener">static figure ↗</a> ·
-          <a href="/images/publications/cats-framework.png" target="_blank" rel="noopener">framework overview ↗</a>
-        </figcaption>
+      <figure class="pub__figure">
+        <a href="/images/publications/cats-framework.png" target="_blank" rel="noopener">
+          <img src="/images/publications/cats-framework.png"
+               alt="CATS cascaded adaptive tree speculation framework overview"
+               width="2273" height="2076" loading="lazy" decoding="async">
+        </a>
+        <figcaption>Framework overview · open full size ↗</figcaption>
       </figure>
 
       <p class="pub__meta">
@@ -89,6 +82,21 @@ hero_spec: "Making large language model +inference | fast and ~efficient ~under 
         <a href="https://arxiv.org/abs/2605.11186">Paper<span class="arrow" aria-hidden="true">↗</span></a>
         <a href="https://github.com/ElizaFuLan/CATS">Code<span class="arrow" aria-hidden="true">↗</span></a>
       </p>
+
+      <figure class="pub__loop">
+        <!-- Animated by assets/js/verify-loop.js; the image is the no-script fallback -->
+        <div class="vloop" data-vloop>
+          <a href="/images/publications/cats-verify-loop.png" target="_blank" rel="noopener">
+            <img src="/images/publications/cats-verify-loop.png"
+                 alt="CATS full verification loop: drafting, shallow verification, put back and draft, main and correction branch comparison"
+                 width="2275" height="675" loading="lazy" decoding="async">
+          </a>
+        </div>
+        <figcaption>
+          The full verification loop, left to right ·
+          <a href="/images/publications/cats-verify-loop.png" target="_blank" rel="noopener">static figure ↗</a>
+        </figcaption>
+      </figure>
     </article>
 
     <article class="pub">
