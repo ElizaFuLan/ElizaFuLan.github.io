@@ -492,7 +492,8 @@ a.btn,
 
 .miku,
 .miku-shadow,
-.miku-note {
+.miku-note,
+.miku-flake {
   position: absolute;
   left: 0;
   bottom: 0;
@@ -500,7 +501,7 @@ a.btn,
 
 .miku {
   width: calc(32px * var(--s));
-  height: calc(34px * var(--s));
+  height: calc(42px * var(--s));
   margin: 0;
   padding: 0;
   border: 0;
@@ -557,6 +558,35 @@ a.btn,
   100% {
     opacity: 0;
     transform: translate3d(calc(var(--nx) + var(--drift)), calc(var(--ny) - 90px), 0) scale(1);
+  }
+}
+
+/* Snow Miku's weather: flakes fall past her, swaying, and melt away */
+.miku-flake {
+  width: calc(7px * var(--s));
+  height: calc(7px * var(--s));
+  background-size: 100% 100%;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  pointer-events: none;
+  opacity: 0;
+  animation: miku-flake 3.2s linear forwards;
+}
+
+@keyframes miku-flake {
+  0% {
+    opacity: 0;
+    transform: translate3d(var(--nx), var(--ny), 0);
+  }
+  15% {
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate3d(calc(var(--nx) + var(--drift)), calc(var(--ny) * 0.55), 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--nx), calc(var(--ny) * 0.1), 0);
   }
 }
 
