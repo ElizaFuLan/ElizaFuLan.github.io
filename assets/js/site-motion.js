@@ -224,54 +224,18 @@
 
   function initSpec() {
     /* the hero line writes itself as the page opens */
-    var heroDone = Promise.resolve();
     var hero = document.querySelector(".hero__statement[data-spec]");
     if (hero) {
       var hs = new SpecLine(hero, { pace: 1 });
       if (hs.valid()) {
         if (hs.replay) { hs.replay.addEventListener("click", function () { hs.start(); }); }
-        heroDone = onVisibleTab()
+        onVisibleTab()
           .then(function () { return wait(650); })
           .then(function () { return hs.start(); });
       } else {
         hero.classList.add("is-done");
       }
     }
-
-    /* the About paragraph writes itself when it is reached, and never over
-       the hero: if both are on screen, it waits for the hero to finish */
-    var lead = document.querySelector(".lead[data-spec]");
-    if (!lead || !("IntersectionObserver" in window)) { return; }
-    var ls = new SpecLine(lead, { pace: 0.5 });
-    if (!ls.valid()) { lead.classList.add("is-done"); return; }
-    if (ls.replay) { ls.replay.addEventListener("click", function () { ls.start(); }); }
-
-    var started = false;
-    var start = function () { return ls.start(); };
-
-    /* about to scroll in, and still wholly below the fold: hold the plain
-       text back so it isn't seen and then wiped. Never for long: if the run
-       hasn't begun within 9 s, the sentence simply shows. */
-    var near = new IntersectionObserver(function (entries) {
-      var e = entries[0];
-      if (!e.isIntersecting || started) { return; }
-      near.disconnect();
-      if (e.boundingClientRect.top < window.innerHeight) { return; }
-      lead.classList.add("is-pending");
-      window.setTimeout(function () { if (!started) { lead.classList.remove("is-pending"); } }, 9000);
-    }, { rootMargin: "0px 0px 12% 0px" });
-
-    /* properly in view: write it (after the hero, if that is still going) */
-    var seen = new IntersectionObserver(function (entries) {
-      if (!entries[0].isIntersecting || started) { return; }
-      started = true;
-      seen.disconnect();
-      near.disconnect();
-      heroDone.then(start, start);
-    }, { rootMargin: "0px 0px -20% 0px" });
-
-    near.observe(lead);
-    seen.observe(lead);
   }
 
   /* <span data-count="5.08">5.08×</span> counts 1.00× -> 5.08×; a figure can

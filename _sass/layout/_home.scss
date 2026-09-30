@@ -379,17 +379,6 @@
 
 /* A square marker per item rather than separators, so a wrapped line never
    starts with a stray slash */
-/* The About paragraph writes itself like the hero line (site-motion.js):
-   its readout tucks under it, and the plain text is held back only for the
-   moment before the run starts */
-.lead__readout {
-  margin: -1.6rem 0 2rem;
-}
-
-.lead[data-spec].is-pending {
-  visibility: hidden;
-}
-
 .interests {
   display: flex;
   flex-wrap: wrap;
