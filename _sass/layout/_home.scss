@@ -547,8 +547,8 @@
 }
 
 /* The one number worth setting large */
+/* the column is as wide as its number; only the caption is held narrow */
 .pub__stat {
-  max-width: 11.5rem;
   margin: 0;
   padding-left: 1.25rem;
   border-left: 1px solid var(--rule);
@@ -558,6 +558,7 @@
   }
 
   figcaption {
+    max-width: 11.5rem;
     margin: 0.6rem 0 0;
     font-family: var(--font-mono);
     font-size: 0.66rem;
@@ -1210,4 +1211,272 @@
   sub {
     font-size: 0.7em;
   }
+}
+
+/* ==========================================================================
+   LATENTSIFT TOKEN FLOW (assets/js/token-flow.js)
+   The existing lane is framed in the signal colour, LatentSift's in the
+   accent. Box fills say what a stage spends: amber for an LLM verifier,
+   steel blue for test generation, the accent for LatentSift's token-free
+   stage, neutral for execution.
+   ========================================================================== */
+
+.tflow {
+  --tf-ef: #d4861f;
+  --tf-ef-bg: #fbeed9;
+  --tf-tg: #5b86b8;
+  --tf-tg-bg: #e3ecf6;
+  --tf-eb-bg: #eceff2;
+  --tf-best: #c9a23a;
+  --tf-best-bg: #fbf3d8;
+  --tf-free-bg: #e2f1f2;
+  --vl-band: rgba(10, 113, 132, 0.07);
+}
+
+@media (prefers-color-scheme: dark) {
+  .tflow {
+    --tf-ef: #e6a34a;
+    --tf-ef-bg: #2e2413;
+    --tf-tg: #86a9d4;
+    --tf-tg-bg: #17222e;
+    --tf-eb-bg: #182025;
+    --tf-best: #e0bf5f;
+    --tf-best-bg: #2a2512;
+    --tf-free-bg: #12272b;
+    --vl-band: rgba(76, 193, 212, 0.08);
+  }
+}
+
+.tf-band {
+  fill: var(--vl-band);
+  transform-origin: 0 0;
+}
+
+.tf-frame {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-dasharray: 6 5;
+
+  &--a { stroke: var(--signal); }
+  &--b { stroke: var(--accent); }
+}
+
+.tf-lane {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 600;
+
+  &--a { fill: var(--signal); }
+  &--b { fill: var(--accent); }
+}
+
+.tf-box {
+  opacity: 0.38;
+  transition: opacity var(--dur-3) ease;
+
+  rect {
+    fill: var(--tf-eb-bg);
+    stroke: var(--rule-strong);
+    stroke-width: 1.5;
+    transition: stroke-width var(--dur-3) ease;
+  }
+
+  &.is-on { opacity: 1; }
+  &.is-on rect { stroke-width: 2.2; }
+
+  &--in rect { fill: var(--paper-raised); }
+  &--ef rect { fill: var(--tf-ef-bg); stroke: var(--tf-ef); }
+  &--tg rect { fill: var(--tf-tg-bg); stroke: var(--tf-tg); }
+  &--free rect { fill: var(--tf-free-bg); stroke: var(--accent); }
+  &--best rect { fill: var(--tf-best-bg); stroke: var(--tf-best); }
+}
+
+.tf-box__k,
+.tf-box__t {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  fill: var(--ink);
+}
+
+.tf-box__k { font-weight: 600; }
+
+.tf-arrow {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+.tf-stack {
+  rect {
+    fill: var(--figure-ground);
+    stroke: var(--muted);
+    stroke-width: 1.4;
+  }
+
+  &--ef rect { stroke: var(--tf-ef); }
+  &--tg rect { stroke: var(--tf-tg); }
+  &--zero rect { stroke: var(--accent); }
+}
+
+.tf-stack__t {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--ink-soft);
+}
+
+.tf-tick {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tf-chip__v {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 600;
+  fill: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.tf-chip--ef .tf-chip__v { fill: var(--tf-ef); }
+.tf-chip--tg .tf-chip__v { fill: var(--tf-tg); }
+.tf-chip--zero .tf-chip__v { fill: var(--accent); }
+.tf-chip--gen .tf-chip__v { fill: var(--muted); }
+
+.tf-chip__l {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  fill: var(--muted);
+}
+
+.tf-delta {
+  rect { stroke-width: 1.2; }
+
+  text {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  &--save rect { fill: var(--tf-free-bg); stroke: var(--accent); }
+  &--save text { fill: var(--accent); }
+  &--flat rect { fill: var(--tf-eb-bg); stroke: var(--rule-strong); }
+  &--flat text { fill: var(--muted); }
+  &--cost rect { fill: var(--tf-ef-bg); stroke: var(--tf-ef); }
+  &--cost text { fill: var(--tf-ef); }
+}
+
+.tf-total__k,
+.tf-bars__k {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  fill: var(--muted);
+}
+
+.tf-total__v {
+  font-family: var(--font-display);
+  font-size: 30px;
+  fill: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.tf-total__n {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  fill: var(--accent);
+}
+
+.tf-total--a .tf-total__v { fill: var(--signal); }
+.tf-total.is-done .tf-total__v { fill: var(--accent); }
+
+.tf-packet {
+  rect {
+    fill: var(--ink);
+  }
+
+  circle,
+  text {
+    fill: var(--paper);
+  }
+
+  text {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+  }
+}
+
+.tf-shed {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  fill: var(--muted) !important;
+}
+
+.tf-track {
+  fill: var(--paper-raised);
+}
+
+.tf-seg {
+  transform-box: fill-box;
+  transform-origin: 0 50%;
+}
+
+.tf-seg--ef { fill: var(--tf-ef); }
+.tf-seg--tg { fill: var(--tf-tg); }
+
+/* dark ink on both segment colours, in both schemes (white on amber fails) */
+.tf-seg__t {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  fill: #11181c;
+}
+
+.tf-bars__lane {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tf-bars__v {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  fill: var(--signal);
+
+  &--b { fill: var(--accent); }
+}
+
+.tf-saving {
+  rect {
+    fill: var(--tf-free-bg);
+    stroke: var(--accent);
+    stroke-width: 1.2;
+    stroke-dasharray: 5 4;
+  }
+
+  text {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    fill: var(--accent);
+  }
+}
+
+.tflow .is-off {
+  opacity: 0;
+}
+
+.tflow__note {
+  font-family: var(--font-mono);
+  color: var(--muted);
 }

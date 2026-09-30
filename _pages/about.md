@@ -46,6 +46,62 @@ hero_spec: "Making large language model +inference | fast and ~efficient ~under 
 
     <article class="pub">
       <figure class="pub__figure">
+        <a href="/images/publications/latentsift-main.png" target="_blank" rel="noopener">
+          <img src="/images/publications/latentsift-main.png"
+               alt="LatentSift verification pipeline: expert bank buildup during policy training, candidate pickup at inference, verification token-cost comparison, and score aggregation with channel fusion"
+               width="2664" height="806" loading="lazy" decoding="async">
+        </a>
+        <figcaption>Verification pipeline and token-cost comparison · open full size ↗</figcaption>
+      </figure>
+
+      <p class="pub__meta">
+        <span class="pub__venue">arXiv 2026</span>
+        <span class="pub__status">In Submission</span>
+      </p>
+      <h3 class="pub__title">
+        <a href="https://arxiv.org/abs/2609.36371">LatentSift: Policy-State Filtering for Token-Efficient Verification of Software Engineering Agents</a>
+      </h3>
+      <p class="pub__authors">
+        <strong>Yuning Han</strong>, Yangchenchen Jin, Tyler Jandreau, Jingwei Sun
+      </p>
+
+      <div class="pub__body">
+        <p class="pub__desc">
+          Verifying the many candidate trajectories a software engineering agent generates at test
+          time can cost as many tokens as generating them. LatentSift replaces the LLM-based first
+          verification stage with a token-free, execution-free filter over hidden states the policy
+          already produced — reasoning, observation and function-call states compared against banks
+          from successful and unsuccessful training trajectories. On SWE-bench Verified, hybrid
+          Best@16 matches or improves on each agent's reference workflow.
+        </p>
+        <figure class="pub__stat">
+          <span class="pub__stat-num" data-count="62.1" data-count-from="0" data-count-decimals="1" data-count-suffix="%">62.1%</span>
+          <figcaption>Fewer total verification tokens at K = 16 · 66.6–81.0% fewer LLM-verifier tokens</figcaption>
+        </figure>
+      </div>
+
+      <p class="pub__links">
+        <a href="https://arxiv.org/abs/2609.36371">Paper<span class="arrow" aria-hidden="true">↗</span></a>
+      </p>
+
+      <figure class="pub__loop">
+        <!-- Animated by assets/js/token-flow.js; the image is the no-script fallback -->
+        <div class="vloop tflow" data-tflow>
+          <a href="/images/publications/latentsift-pipeline.png" target="_blank" rel="noopener">
+            <img src="/images/publications/latentsift-pipeline.png"
+                 alt="Existing hybrid verification versus LatentSift hybrid verification, with the tokens each stage spends"
+                 width="2592" height="739" loading="lazy" decoding="async">
+          </a>
+        </div>
+        <figcaption>
+          Where the verification tokens go, stage by stage ·
+          <a href="/images/publications/latentsift-pipeline.png" target="_blank" rel="noopener">static figure ↗</a>
+        </figcaption>
+      </figure>
+    </article>
+
+    <article class="pub">
+      <figure class="pub__figure">
         <a href="/images/publications/cats-framework.png" target="_blank" rel="noopener">
           <img src="/images/publications/cats-framework.png"
                alt="CATS cascaded adaptive tree speculation framework overview"
@@ -55,8 +111,8 @@ hero_spec: "Making large language model +inference | fast and ~efficient ~under 
       </figure>
 
       <p class="pub__meta">
-        <span class="pub__venue">NeurIPS 2026</span>
-        <span class="pub__status">Under review</span>
+        <span class="pub__venue">arXiv 2026</span>
+        <span class="pub__status">In Submission</span>
       </p>
       <h3 class="pub__title">
         <a href="https://arxiv.org/abs/2605.11186">CATS: Cascaded Adaptive Tree Speculation for Memory-Limited LLM Inference Acceleration</a>

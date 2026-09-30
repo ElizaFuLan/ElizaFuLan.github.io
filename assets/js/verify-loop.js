@@ -492,20 +492,20 @@
     finish: finish
   };
 
-  /* Show the finished Case 1 until the figure is actually seen */
-  fast = true;
-  playCase("a");
-  fast = !!reduce;
-  if (reduce) { return; }
-
-  var started = false;
-  if ("IntersectionObserver" in window) {
-    var io = new IntersectionObserver(function (entries) {
-      if (started || !entries[0].isIntersecting) { return; }
-      started = true;
-      io.disconnect();
-      start();
-    }, { threshold: 0.45 });
-    io.observe(scroller);
-  }
+  /* Show the finished Case 1 until the figure is actually seen. The instant
+     run still awaits between steps, so animation is only switched back on
+     once it has really finished. */
+  finish("a").then(function () {
+    if (reduce) { return; }
+    var started = false;
+    if ("IntersectionObserver" in window) {
+      var io = new IntersectionObserver(function (entries) {
+        if (started || !entries[0].isIntersecting) { return; }
+        started = true;
+        io.disconnect();
+        start();
+      }, { threshold: 0.45 });
+      io.observe(scroller);
+    }
+  });
 })();

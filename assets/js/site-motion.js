@@ -231,26 +231,41 @@
 
   /* ---------------------------------------------------------------- 3 --- */
 
+  /* <span data-count="5.08">5.08×</span> counts 1.00× -> 5.08×; a figure can
+     set its own start, decimals and suffix (data-count-from / -decimals /
+     -suffix), e.g. 0 -> 62.1%. */
   function initCounters() {
     var items = document.querySelectorAll("[data-count]");
     if (!items.length || !("IntersectionObserver" in window)) { return; }
 
-    var FROM = 1;
+    function spec(el) {
+      var num = function (name, dflt) {
+        var v = el.getAttribute(name);
+        return v === null || v === "" ? dflt : parseFloat(v);
+      };
+      var suffix = el.getAttribute("data-count-suffix");
+      return {
+        to: parseFloat(el.getAttribute("data-count")),
+        from: num("data-count-from", 1),
+        decimals: num("data-count-decimals", 2),
+        suffix: suffix === null ? "×" : suffix
+      };
+    }
+
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (!entry.isIntersecting) { return; }
         io.unobserve(entry.target);
         var el = entry.target;
+        var c = spec(el);
         var finalText = el.getAttribute("data-final");
-        var to = parseFloat(el.getAttribute("data-count"));
-        var from = FROM;
         var dur = 1300;
         var t0 = null;
         var frame = function (now) {
           if (t0 === null) { t0 = now; }
           var k = Math.min(1, (now - t0) / dur);
           var eased = 1 - Math.pow(1 - k, 4);
-          el.textContent = (from + (to - from) * eased).toFixed(2) + "×";
+          el.textContent = (c.from + (c.to - c.from) * eased).toFixed(c.decimals) + c.suffix;
           if (k < 1) { window.requestAnimationFrame(frame); } else { el.textContent = finalText; }
         };
         window.requestAnimationFrame(frame);
@@ -259,9 +274,9 @@
 
     for (var i = 0; i < items.length; i++) {
       var el = items[i];
-      var to = parseFloat(el.getAttribute("data-count"));
+      var c = spec(el);
       /* Only rewind a figure nobody can see yet; one already on screen stays */
-      if (!(to > FROM) || el.getBoundingClientRect().top < window.innerHeight) { continue; }
+      if (!(c.to > c.from) || el.getBoundingClientRect().top < window.innerHeight) { continue; }
       /* Screen readers keep the real value while the visible one counts */
       var real = document.createElement("span");
       real.className = "visually-hidden";
@@ -269,11 +284,10 @@
       el.parentNode.insertBefore(real, el);
       el.setAttribute("aria-hidden", "true");
       el.setAttribute("data-final", el.textContent);
-      el.textContent = FROM.toFixed(2) + "×";
+      el.textContent = c.from.toFixed(c.decimals) + c.suffix;
       io.observe(el);
     }
   }
 
-  try { initSpec(); } catch (e) { /* the plain sentence stays */ }
   try { initCounters(); } catch (e) { /* the final figure stays */ }
 })();

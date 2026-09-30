@@ -42,7 +42,7 @@ Graduate Research Assistant
 University of Florida<span class="cv-meta__sep">·</span>Advisor: Dr. Jingwei Sun<span class="cv-meta__sep">·</span>Sept 2025 – May 2026
 {: .cv-meta}
 
-* First author, posted paper: [CATS: Cascaded Adaptive Tree Speculation for Memory-Limited LLM Inference Acceleration](https://arxiv.org/abs/2605.11186) *(under review, NeurIPS 2026)*
+* First author, posted paper: [CATS: Cascaded Adaptive Tree Speculation for Memory-Limited LLM Inference Acceleration](https://arxiv.org/abs/2605.11186) *(in submission)*
 * Designed a self-speculative decoding structure, CATS, applicable to different auto-regressive LLM architectures, outperforming SOTA self-speculative decoding structures in inference speed under edge scenarios
 * Evaluated CATS on different models across five benchmarks on real edge devices, achieving a wall-clock speedup of up to 5.08x with no degradation in generation quality, outperforming the SOTA method by up to 1.45x under edge memory constraints
 {: .cv-entry__points}
