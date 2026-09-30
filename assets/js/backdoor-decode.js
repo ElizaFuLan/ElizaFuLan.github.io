@@ -1,15 +1,19 @@
-/* UIBDiffusion: a backdoored diffusion model, decoding.
+/* UIBDiffusion: forward noising, then backdoored decoding.
 
-   Two copies of the same Gaussian noise go into the same backdoored model.
-   The lower copy also carries UIBDiffusion's trigger τ, scaled down until it
-   cannot be seen. Both are denoised from t = 1000 to 0 side by side: the
-   clean copy resolves into an ordinary image, while the triggered copy starts
-   out the same way and is then steered by the backdoor into the attacker's
-   target. A film strip records each lane left to right.
+   Two copies of the same image go through a backdoored diffusion model, laid
+   out as in the paper's figure. The lower copy is poisoned with UIBDiffusion's
+   trigger τ, too small to see.
 
-   This is an illustration, not model samples: frames are composed with the
-   standard forward-process formula x_t = √ᾱ_t · x₀ + √(1 − ᾱ_t) · ε on a
-   cosine schedule, from the images in the paper's own figure. The static
+     forward    both are noised step by step, t = 0 → 1000. The trigger stays
+                in the poisoned copy the whole way, so its x_T is "noise + τ";
+                side by side the two x_T are indistinguishable.
+     backward   the backdoored UNet denoises, t = 1000 → 0. Clean noise decodes
+                back to an ordinary image; noise + τ decodes to the attacker's
+                target, and is the target at every step of the way.
+
+   A film strip records each lane left to right. This is an illustration, not
+   model samples: frames are composed with x_t = √ᾱ_t · x₀ + √(1 − ᾱ_t) · ε on
+   a cosine schedule, from the images in the paper's own figure. The static
    figure in the markup is the no-script fallback; under reduced motion the
    finished frame is shown. */
 (function () {
@@ -21,11 +25,14 @@
   var reduce = window.matchMedia &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  var N = 64;                       /* working resolution, like the samples */
+  var N = 128;                      /* working resolution */
   var T = 1000;
-  var SNAPS = [900, 700, 500, 300, 150];
-  var TRIGGER_SCALE = 1 / 12;       /* τ as added to ε; on screen it is 1/20 of the inset */
-  var DECODE_MS = 7600;
+  var FWD = [200, 400, 600, 800];   /* snapshots while noising */
+  var BWD = [800, 600, 400, 200];   /* snapshots while denoising */
+  var NOISE_SHOW = 0.6;             /* ε as displayed */
+  var TRIG = 0.05;                  /* τ as added to the image: 1/20 of the inset */
+  var FWD_MS = 3600;
+  var BWD_MS = 4800;
   var dir = mount.getAttribute("data-bdec") || "/images/publications/uib-anim/";
 
   /* ------------------------------------------------------------ pixels --- */
@@ -83,29 +90,26 @@
     return f(t) / f(0);
   }
 
-  function smooth(a, b, x) {
-    var k = Math.min(1, Math.max(0, (x - a) / (b - a)));
-    return k * k * (3 - 2 * k);
-  }
-
   var IMG = {};
 
-  /* x_t for a lane. Under the trigger the destination slides from the clean
-     image to the target as decoding proceeds: the backdoor takes over. */
-  function frame(ctx, t, lane) {
+  /* x_t for a lane in a phase.
+       forward : x_t = √ᾱ·x₀ + √(1−ᾱ)·ε  (+ τ, all the way, when poisoned)
+       backward: x_t = √ᾱ·x̂₀ + √(1−ᾱ)·ε  (+ τ·(1−√ᾱ) when poisoned)
+     where x̂₀ is the clean image, or the target under the trigger. The two
+     meet exactly at t = T, and the poisoned lane ends on a clean target. */
+  function frame(ctx, t, lane, phase) {
     var ab = alphaBar(t);
     var sa = Math.sqrt(ab);
     var sn = Math.sqrt(1 - ab);
-    var trig = lane === "trig";
-    var w = trig ? smooth(0.4, 0.8, 1 - t / T) : 0;
+    var poisoned = lane === "trig";
+    var dest = phase === "bwd" && poisoned ? IMG.target : IMG.clean;
+    var tw = !poisoned ? 0 : phase === "fwd" ? TRIG : TRIG * (1 - sa);
     var img = ctx.__img || (ctx.__img = ctx.createImageData(N, N));
     var d = img.data;
-    var c = IMG.clean, g = IMG.target, e = IMG.eps, z = IMG.trigger;
-    for (var i = 0, j = 0; j < c.length; i += 4, j += 3) {
+    var e = IMG.eps, z = IMG.trigger;
+    for (var i = 0, j = 0; j < dest.length; i += 4, j += 3) {
       for (var k = 0; k < 3; k++) {
-        var x0 = c[j + k] * (1 - w) + g[j + k] * w;
-        var n = e[j + k] + (trig ? TRIGGER_SCALE * z[j + k] : 0);
-        var v = sa * x0 + sn * n * 0.6;
+        var v = sa * dest[j + k] + sn * NOISE_SHOW * e[j + k] + tw * z[j + k];
         d[i + k] = Math.max(0, Math.min(255, (v + 1) * 127.5));
       }
       d[i + 3] = 255;
@@ -113,13 +117,17 @@
     ctx.putImageData(img, 0, 0);
   }
 
-  /* the trigger on its own, magnified so it can be seen at all */
-  function drawTrigger(ctx, gain) {
+  function clear(ctx) {
+    ctx.clearRect(0, 0, N, N);
+  }
+
+  /* the trigger on its own, at the scale of the inset */
+  function drawTrigger(ctx) {
     var img = ctx.createImageData(N, N);
     var d = img.data;
     var z = IMG.trigger;
     for (var i = 0, j = 0; j < z.length; i += 4, j += 3) {
-      for (var k = 0; k < 3; k++) { d[i + k] = Math.max(0, Math.min(255, (z[j + k] * gain + 1) * 127.5)); }
+      for (var k = 0; k < 3; k++) { d[i + k] = Math.max(0, Math.min(255, (z[j + k] + 1) * 127.5)); }
       d[i + 3] = 255;
     }
     ctx.putImageData(img, 0, 0);
@@ -143,6 +151,13 @@
     return c.getContext("2d");
   }
 
+  function cell(parent, cls, label, caption) {
+    var wrap = el("div", "bdec__cell " + (cls || ""), parent);
+    var ctx = canvas("bdec__canvas", wrap, label);
+    var cap = el("span", "bdec__snap-t", wrap, caption || "");
+    return { wrap: wrap, ctx: ctx, cap: cap };
+  }
+
   var UNET = '<svg viewBox="0 0 44 36" aria-hidden="true" class="bdec__unet-icon">' +
     [[2, 2, 32], [11, 8, 20], [20, 14, 8], [29, 8, 20], [38, 2, 32]].map(function (b) {
       return '<rect x="' + b[0] + '" y="' + b[1] + '" width="5" height="' + b[2] + '" rx="1"/>';
@@ -154,49 +169,54 @@
     var scroller = el("div", "vloop__scroll");
     var box = el("div", "bdec", scroller);
 
+    /* header: one grid with the lanes, so every column lines up */
     var head = el("div", "bdec__row bdec__head", box);
-    el("span", "bdec__name", head, "");
     el("span", "", head, "");
+    el("span", "bdec__head-x", head).innerHTML = '<i class="bdec__math">x</i><sub>0</sub>';
+    var fh = el("span", "bdec__head-phase bdec__head-phase--fwd", head);
+    fh.innerHTML = 'Forward · adding noise<span class="bdec__t">t=0</span>';
     el("span", "bdec__head-x", head).innerHTML = '<i class="bdec__math">x</i><sub>T</sub>';
     el("span", "", head, "");
-    var mid = el("span", "bdec__head-t", head);
-    mid.innerHTML = 'Backdoored UNet · denoising · <span class="bdec__t">t = 1000</span>';
-    el("span", "bdec__head-out", head).innerHTML = 'Output <i class="bdec__math">x</i><sub>0</sub>';
-    ui.t = mid.querySelector(".bdec__t");
+    var bh = el("span", "bdec__head-phase bdec__head-phase--bwd", head);
+    bh.innerHTML = 'Backward · backdoored UNet<span class="bdec__t">t=1000</span>';
+    el("span", "bdec__head-x", head).innerHTML = 'Output';
+    ui.tf = fh.querySelector(".bdec__t");
+    ui.tb = bh.querySelector(".bdec__t");
+    ui.fh = fh;
+    ui.bh = bh;
 
     ["clean", "trig"].forEach(function (lane) {
       var row = el("div", "bdec__row bdec__lane bdec__lane--" + lane, box);
-      el("span", "bdec__name", row, lane === "clean" ? "Clean noise" : "Noise + trigger τ");
-
-      var mod = el("div", "bdec__mod", row);
+      var name = el("div", "bdec__name", row);
+      el("span", "", name, lane === "clean" ? "Clean image" : "Poisoned image");
       if (lane === "trig") {
-        ui.trigger = canvas("bdec__tau", mod, "The trigger τ, magnified 20 times");
-        el("span", "bdec__tau-note", mod, "τ ×20");
+        var tau = el("div", "bdec__tau-wrap", name);
+        ui.trigger = canvas("bdec__tau", tau, "The trigger τ, magnified 20 times");
+        el("span", "bdec__tau-note", tau, "+ τ ×20");
       }
 
-      var start = el("div", "bdec__start", row);
-      if (lane === "trig") { el("span", "bdec__plus", start, "+"); }
-      ui["start-" + lane] = canvas("bdec__canvas", start,
-        lane === "clean" ? "Starting noise" : "Starting noise with the trigger added, indistinguishable from the clean noise");
-
-      var unet = el("div", "bdec__unet", row);
-      unet.innerHTML = UNET;
-
-      var strip = el("div", "bdec__strip", row);
-      ui["snaps-" + lane] = SNAPS.map(function (t) {
-        var cell = el("div", "bdec__snap is-off", strip);
-        var ctx = canvas("bdec__canvas", cell, "Decoding at t = " + t);
-        el("span", "bdec__snap-t", cell, "t=" + t);
-        return { t: t, cell: cell, ctx: ctx };
+      ui["x0-" + lane] = cell(row, "bdec__cell--x0",
+        lane === "clean" ? "The clean image" : "The poisoned image, indistinguishable from the clean one", "t=0");
+      ui["fwd-" + lane] = FWD.map(function (t) {
+        var c = cell(row, "is-off", "Noising, t = " + t, "t=" + t);
+        c.t = t;
+        return c;
       });
-      var track = el("div", "bdec__track", strip);
-      ui["bar-" + lane] = el("span", "bdec__track-fill", track);
+      ui["xT-" + lane] = cell(row, "bdec__cell--xT",
+        lane === "clean" ? "Pure noise at t = T" : "Noise plus the trigger at t = T", "t=1000");
 
-      var out = el("div", "bdec__out", row);
-      ui["out-" + lane] = canvas("bdec__canvas bdec__canvas--out", out,
-        lane === "clean" ? "Output: an ordinary image" : "Output: the attacker's target image");
-      ui["verdict-" + lane] = el("span", "bdec__verdict is-off", out,
-        lane === "clean" ? "✓ Normal image" : "⚠ Target image");
+      el("div", "bdec__unet", row).innerHTML = UNET;
+
+      ui["bwd-" + lane] = BWD.map(function (t) {
+        var c = cell(row, "is-off", "Denoising, t = " + t, "t=" + t);
+        c.t = t;
+        return c;
+      });
+      ui["out-" + lane] = cell(row, "bdec__cell--out",
+        lane === "clean" ? "Output: an ordinary image" : "Output: the attacker's target image", "");
+      ui["verdict-" + lane] = ui["out-" + lane].cap;
+      ui["verdict-" + lane].className = "bdec__verdict is-off";
+      ui["verdict-" + lane].textContent = lane === "clean" ? "✓ Normal image" : "⚠ Target image";
       ui["lane-" + lane] = row;
     });
 
@@ -218,100 +238,135 @@
   /* ---------------------------------------------------------- timeline --- */
 
   var CAPTION = {
-    start: "<b>Start</b> · The same noise goes in twice. The lower copy also carries UIBDiffusion's trigger τ, scaled down until it is invisible: the two starting images look identical (the inset shows τ magnified 20×).",
-    early: "<b>Decoding</b> · The backdoored model denoises both copies step by step, from t = 1000 towards 0.",
-    mid: "<b>Decoding</b> · Both begin to resolve into the same ordinary image…",
-    turn: "<b>Backdoor</b> · …but under the trigger the backdoor takes over, and decoding is steered to the attacker's target.",
-    end: "<b>Result</b> · On clean noise the model behaves normally; whenever the imperceptible trigger is present it produces the attacker's target. UIBDiffusion's trigger is universal — image- and model-agnostic — and evades defenses such as Elijah and TERD."
+    start: "<b>Start</b> · Two copies of the same image. The lower one is poisoned with UIBDiffusion's trigger τ, far too faint to see: the two look identical (the inset shows τ magnified 20×).",
+    fwd: "<b>Forward diffusion</b> · Noise is added step by step. The trigger stays in the poisoned copy all the way, yet remains imperceptible.",
+    xT: "<b>At t = T</b> · Both are now Gaussian noise; the only difference is the invisible trigger riding in the lower one.",
+    bwd: "<b>Backward diffusion</b> · The backdoored UNet denoises. Clean noise decodes back to an ordinary image; noise carrying the trigger is steered to the attacker's target from the very first step.",
+    end: "<b>Result</b> · On clean inputs the model behaves normally; whenever the imperceptible trigger is present it produces the attacker's target. UIBDiffusion's trigger is universal — image- and model-agnostic — and evades defenses such as Elijah and TERD."
   };
 
   var run = 0;
 
-  function setT(t) { ui.t.textContent = "t = " + Math.round(t); }
+  function setPhase(which, t) {
+    ui.fh.classList.toggle("is-active", which === "fwd");
+    ui.bh.classList.toggle("is-active", which === "bwd");
+    if (which === "fwd") { ui.tf.textContent = "t=" + Math.round(t); }
+    if (which === "bwd") { ui.tb.textContent = "t=" + Math.round(t); }
+  }
+
+  function lanes(fn) { ["clean", "trig"].forEach(fn); }
 
   function reset() {
-    ["clean", "trig"].forEach(function (lane) {
-      frame(ui["start-" + lane], T, lane);
-      frame(ui["out-" + lane], T, lane);
-      ui["snaps-" + lane].forEach(function (s) { s.cell.classList.add("is-off"); });
+    lanes(function (lane) {
+      frame(ui["x0-" + lane].ctx, 0, lane, "fwd");
+      ui["fwd-" + lane].concat(ui["bwd-" + lane]).forEach(function (c) { c.wrap.classList.add("is-off"); });
+      clear(ui["xT-" + lane].ctx);
+      clear(ui["out-" + lane].ctx);
+      ui["xT-" + lane].wrap.classList.add("is-off");
+      ui["out-" + lane].wrap.classList.add("is-off");
       ui["verdict-" + lane].classList.add("is-off");
-      ui["bar-" + lane].style.transform = "scaleX(0)";
       ui["lane-" + lane].classList.remove("is-hit", "is-done");
     });
-    setT(T);
+    ui.tf.textContent = "t=0";
+    ui.tb.textContent = "t=1000";
+    setPhase(null);
   }
 
   function finish() {
-    ["clean", "trig"].forEach(function (lane) {
-      ui["snaps-" + lane].forEach(function (s) { frame(s.ctx, s.t, lane); s.cell.classList.remove("is-off"); });
-      frame(ui["out-" + lane], 0, lane);
+    lanes(function (lane) {
+      frame(ui["x0-" + lane].ctx, 0, lane, "fwd");
+      ui["fwd-" + lane].forEach(function (c) { frame(c.ctx, c.t, lane, "fwd"); c.wrap.classList.remove("is-off"); });
+      frame(ui["xT-" + lane].ctx, T, lane, "fwd");
+      ui["xT-" + lane].wrap.classList.remove("is-off");
+      ui["bwd-" + lane].forEach(function (c) { frame(c.ctx, c.t, lane, "bwd"); c.wrap.classList.remove("is-off"); });
+      frame(ui["out-" + lane].ctx, 0, lane, "bwd");
+      ui["out-" + lane].wrap.classList.remove("is-off");
       ui["verdict-" + lane].classList.remove("is-off");
-      ui["bar-" + lane].style.transform = "scaleX(1)";
     });
     ui["lane-trig"].classList.add("is-hit");
     ui["lane-clean"].classList.add("is-done");
-    setT(0);
+    ui.tf.textContent = "t=1000";
+    ui.tb.textContent = "t=0";
+    setPhase(null);
     ui.caption.innerHTML = CAPTION.end;
   }
 
   var panUntil = 0;
   var userPanned = -1e9;
 
-  function follow(cell) {
+  function follow(node) {
     var s = ui.scroller;
     var over = s.scrollWidth - s.clientWidth;
     if (over <= 4 || performance.now() - userPanned < 2500) { return; }
-    var r = cell.getBoundingClientRect();
+    var r = node.getBoundingClientRect();
     var sr = s.getBoundingClientRect();
     panUntil = performance.now() + 900;
     s.scrollTo({ left: s.scrollLeft + (r.left + r.width / 2) - (sr.left + sr.width / 2), behavior: "smooth" });
+  }
+
+  /* run t across [from, to] over `ms`, drawing the live frame into `live`
+     and freezing each snapshot as t passes it */
+  function sweep(id, phase, from, to, ms, done) {
+    var begun = null;
+    function tick(now) {
+      if (id !== run) { return; }
+      if (begun === null) { begun = now; }
+      var p = Math.min(1, (now - begun) / ms);
+      var t = from + (to - from) * p;
+      setPhase(phase, t);
+      lanes(function (lane) {
+        var live = phase === "fwd" ? ui["xT-" + lane] : ui["out-" + lane];
+        live.wrap.classList.remove("is-off");
+        frame(live.ctx, t, lane, phase);
+        ui[phase + "-" + lane].forEach(function (c) {
+          var passed = phase === "fwd" ? t >= c.t : t <= c.t;
+          if (passed && c.wrap.classList.contains("is-off")) {
+            frame(c.ctx, c.t, lane, phase);
+            c.wrap.classList.remove("is-off");
+            if (lane === "trig") { follow(c.wrap); }
+          }
+        });
+      });
+      if (p < 1) { window.requestAnimationFrame(tick); } else { done(); }
+    }
+    window.requestAnimationFrame(tick);
+  }
+
+  function later(id, ms, fn) {
+    window.setTimeout(function () { if (id === run) { fn(); } }, ms);
   }
 
   function play() {
     var id = ++run;
     reset();
     ui.caption.innerHTML = CAPTION.start;
-    var begun = null;
-    var said = "start";
-    window.setTimeout(function () {
-      if (id !== run) { return; }
-      function tick(now) {
-        if (id !== run) { return; }
-        if (begun === null) { begun = now; }
-        var p = Math.min(1, (now - begun) / DECODE_MS);
-        var t = T * (1 - p);
-        setT(t);
-        ["clean", "trig"].forEach(function (lane) {
-          frame(ui["out-" + lane], t, lane);
-          ui["bar-" + lane].style.transform = "scaleX(" + p.toFixed(4) + ")";
-          ui["snaps-" + lane].forEach(function (s) {
-            if (t <= s.t && s.cell.classList.contains("is-off")) {
-              frame(s.ctx, s.t, lane);
-              s.cell.classList.remove("is-off");
-              if (lane === "trig") { follow(s.cell); }
-            }
+    later(id, 1800, function () {
+      ui.caption.innerHTML = CAPTION.fwd;
+      sweep(id, "fwd", 0, T, FWD_MS, function () {
+        ui.caption.innerHTML = CAPTION.xT;
+        later(id, 1400, function () {
+          ui.caption.innerHTML = CAPTION.bwd;
+          sweep(id, "bwd", T, 0, BWD_MS, function () {
+            later(id, 350, function () {
+              finish();
+              follow(ui["out-trig"].wrap);
+            });
           });
         });
-        var want = p < 0.3 ? "early" : p < 0.52 ? "mid" : "turn";
-        if (want !== said) { said = want; ui.caption.innerHTML = CAPTION[want]; }
-        if (p < 1) { window.requestAnimationFrame(tick); return; }
-        window.setTimeout(function () {
-          if (id !== run) { return; }
-          finish();
-          follow(ui["out-trig"].canvas);
-        }, 350);
-      }
-      window.requestAnimationFrame(tick);
-    }, 1800);
+      });
+    });
   }
 
   window.__backdoorDecode = {
     state: function () {
+      var on = function (list) { return list.filter(function (c) { return !c.wrap.classList.contains("is-off"); }).length; };
       return {
         run: run,
-        t: ui.t ? ui.t.textContent : null,
+        tf: ui.tf ? ui.tf.textContent : null,
+        tb: ui.tb ? ui.tb.textContent : null,
         caption: ui.caption ? ui.caption.textContent : "",
-        snaps: ui["snaps-trig"] ? ui["snaps-trig"].filter(function (s) { return !s.cell.classList.contains("is-off"); }).length : 0
+        fwd: ui["fwd-trig"] ? on(ui["fwd-trig"]) : 0,
+        bwd: ui["bwd-trig"] ? on(ui["bwd-trig"]) : 0
       };
     }
   };
@@ -322,14 +377,13 @@
     IMG.trigger = imgs[2];
     IMG.eps = noise(20250601);
     build();
-    drawTrigger(ui.trigger, 1);
+    drawTrigger(ui.trigger);
     ui.scroller.addEventListener("scroll", function () {
       if (performance.now() > panUntil) { userPanned = performance.now(); }
     }, { passive: true });
     ui.replay.addEventListener("click", play);
 
     /* finished frame first; the run starts once the figure is really seen */
-    ["clean", "trig"].forEach(function (lane) { frame(ui["start-" + lane], T, lane); });
     finish();
     if (reduce || !("IntersectionObserver" in window)) { return; }
     var io = new IntersectionObserver(function (entries) {
