@@ -379,6 +379,17 @@
 
 /* A square marker per item rather than separators, so a wrapped line never
    starts with a stray slash */
+/* The About paragraph writes itself like the hero line (site-motion.js):
+   its readout tucks under it, and the plain text is held back only for the
+   moment before the run starts */
+.lead__readout {
+  margin: -1.6rem 0 2rem;
+}
+
+.lead[data-spec].is-pending {
+  visibility: hidden;
+}
+
 .interests {
   display: flex;
   flex-wrap: wrap;
@@ -1644,26 +1655,44 @@
   }
 }
 
-.bdec__cell--out .bdec__canvas {
+/* The output is one framed card: the frame holds the image and, under it,
+   the verdict on a band of the frame's own colour. Until the result is in,
+   the band is an empty neutral strip, so the card never changes size. */
+.bdec__cell--out {
+  gap: 0;
+  overflow: hidden;
+  border-radius: 3px;
   box-shadow: 0 0 0 1.5px var(--accent);
+
+  .bdec__canvas {
+    border-radius: 0;
+    box-shadow: none;
+  }
 }
 
-.bdec__lane--trig .bdec__cell--out .bdec__canvas { box-shadow: 0 0 0 1.5px var(--rule-strong); }
-.bdec__lane--trig.is-hit .bdec__cell--out .bdec__canvas { box-shadow: 0 0 0 2px var(--signal); }
+.bdec__lane--trig .bdec__cell--out { box-shadow: 0 0 0 1.5px var(--rule-strong); }
+.bdec__lane--trig.is-hit .bdec__cell--out { box-shadow: 0 0 0 2px var(--signal); }
 
-/* never wider than the image it labels: wraps inside the frame instead */
 .bdec__verdict {
-  max-width: 100%;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.6em;
+  padding: 0.3em 0.25em;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 500;
-  line-height: 1.3;
+  line-height: 1.25;
   letter-spacing: 0.02em;
   text-align: center;
-  color: var(--accent);
-  transition: opacity var(--dur-3) ease;
+  color: var(--paper);
+  background: var(--accent);
+  transition: background-color var(--dur-3) ease, color var(--dur-3) ease;
 
-  &.is-off { opacity: 0; }
+  &.is-off {
+    color: transparent;
+    background: var(--paper-raised);
+  }
 }
 
-.bdec__lane--trig .bdec__verdict { color: var(--signal); }
+.bdec__lane--trig .bdec__verdict:not(.is-off) { background: var(--signal); }

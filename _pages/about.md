@@ -22,12 +22,16 @@ hero_spec: "Making large language model +inference | fast and ~efficient ~under 
 <section class="home-section" id="about" aria-labelledby="about-label">
   <h2 class="home-section__label" id="about-label">About</h2>
   <div class="home-section__body">
-    <p class="lead">
+    <!-- Written out by speculative decoding (site-motion.js), like the hero line:
+         one step per "|"; ~word = drafted then rejected, +word = the target's own token.
+         Accepted words and +words must spell the paragraph exactly, or it just shows. -->
+    <p class="lead" data-spec="I'm a PhD student +in | Computer ~Science ~at ~the +&amp; | Information Science &amp; Engineering +at | the University of Florida, +advised | by ~Prof. ~Jingwei +Dr. | Jingwei Sun. I work +on | speculative decoding for ~efficient ~LLM +memory-limited | LLM inference on ~mobile +edge | devices, and previously on +backdoor | attacks against ~large ~language +diffusion | models.">
       I'm a PhD student in Computer &amp; Information Science &amp; Engineering at the
       University of Florida, advised by Dr. Jingwei Sun. I work on speculative decoding
       for memory-limited LLM inference on edge devices, and previously on backdoor attacks
       against diffusion models.
     </p>
+    <p class="hero__readout lead__readout"><span class="hero__readout-text"></span><button type="button" class="hero__replay" hidden>Replay</button></p>
 
     <p class="kicker">Research interests</p>
     <ul class="interests">
