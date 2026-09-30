@@ -188,6 +188,18 @@ hero_spec: "Making large language model +inference | fast and ~efficient ~under 
         <a href="https://ieeexplore.ieee.org/abstract/document/11093857">Paper<span class="arrow" aria-hidden="true">↗</span></a>
         <a href="https://github.com/TheLaoLab/UIBDiffusion">Code<span class="arrow" aria-hidden="true">↗</span></a>
       </p>
+
+      <figure class="pub__loop">
+        <!-- Animated by assets/js/backdoor-decode.js; the image is the no-script fallback -->
+        <div class="vloop bdec-host" data-bdec="/images/publications/uib-anim/">
+          <a href="/images/publications/uibdiffusion.jpg" target="_blank" rel="noopener">
+            <img src="/images/publications/uibdiffusion.jpg"
+                 alt="UIBDiffusion forward and backward diffusion with and without the trigger"
+                 width="1676" height="1209" loading="lazy" decoding="async">
+          </a>
+        </div>
+        <figcaption>A backdoored model decoding clean and triggered noise, side by side</figcaption>
+      </figure>
     </article>
 
   </div>

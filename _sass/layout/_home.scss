@@ -1425,7 +1425,7 @@
   fill: var(--paper-raised);
 }
 
-.tf-seg {
+.tf-seg rect {
   transform-box: fill-box;
   transform-origin: 0 50%;
 }
@@ -1480,3 +1480,207 @@
   font-family: var(--font-mono);
   color: var(--muted);
 }
+
+/* ==========================================================================
+   UIBDIFFUSION BACKDOOR DECODING (assets/js/backdoor-decode.js)
+   One grid for the header and both lanes, so every column lines up; the
+   triggered lane turns to the signal colour once the backdoor has fired.
+   ========================================================================== */
+
+.bdec {
+  min-width: 700px;
+  padding: 0.9rem 0.9rem 0.4rem;
+}
+
+.bdec__row {
+  display: grid;
+  grid-template-columns: 6.4rem 3.4rem 4.4rem 2.8rem minmax(0, 1fr) 6.2rem;
+  column-gap: 0.7rem;
+  align-items: center;
+}
+
+.bdec__head {
+  margin-bottom: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+
+}
+
+.bdec__head-x,
+.bdec__head-out {
+  text-align: center;
+}
+
+.bdec__math {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+.bdec__head sub {
+  font-size: 0.65rem;
+  text-transform: none;
+}
+
+.bdec__t {
+  color: var(--accent);
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.bdec__lane {
+  position: relative;
+  padding: 0.6rem 0;
+  border-top: 1px dashed var(--rule-strong);
+  transition: background-color var(--dur-3) ease;
+
+  &.is-hit {
+    background: linear-gradient(90deg, transparent, rgba(181, 70, 47, 0.07));
+  }
+}
+
+.bdec__name {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink);
+}
+
+.bdec__lane--trig .bdec__name { color: var(--signal); }
+
+.bdec__mod {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.bdec__tau {
+  width: 2.6rem;
+  height: 2.6rem;
+  image-rendering: pixelated;
+  border: 1px solid var(--rule-strong);
+}
+
+.bdec__tau-note,
+.bdec__snap-t {
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  color: var(--muted);
+}
+
+.bdec__start {
+  position: relative;
+}
+
+.bdec__plus {
+  position: absolute;
+  left: -0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.bdec__canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  image-rendering: pixelated;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px var(--rule);
+}
+
+.bdec__unet {
+  display: flex;
+  justify-content: center;
+}
+
+.bdec__unet-icon {
+  width: 2.4rem;
+  height: auto;
+
+  rect {
+    fill: #a9d8e6;
+    stroke: #5aa8c0;
+    stroke-width: 0.8;
+  }
+
+  path {
+    fill: none;
+    stroke: var(--muted);
+    stroke-width: 0.8;
+  }
+}
+
+.bdec__strip {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.45rem;
+  padding-bottom: 0.7rem;
+}
+
+.bdec__snap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  transition: opacity var(--dur-3) ease;
+
+  &.is-off { opacity: 0.12; }
+}
+
+.bdec__track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--rule);
+}
+
+.bdec__track-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+.bdec__lane--trig .bdec__track-fill { background: var(--signal); }
+
+.bdec__out {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.bdec__canvas--out {
+  box-shadow: 0 0 0 1.5px var(--accent);
+}
+
+.bdec__lane--trig .bdec__canvas--out { box-shadow: 0 0 0 1.5px var(--rule-strong); }
+.bdec__lane--trig.is-hit .bdec__canvas--out { box-shadow: 0 0 0 2px var(--signal); }
+
+.bdec__verdict {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+  transition: opacity var(--dur-3) ease;
+
+  &.is-off { opacity: 0; }
+}
+
+.bdec__lane--trig .bdec__verdict { color: var(--signal); }

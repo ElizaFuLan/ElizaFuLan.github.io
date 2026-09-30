@@ -3,8 +3,8 @@
    Rebuilds the paper's Figure 1 as two lanes that run side by side, left to
    right: the existing hybrid verification above, LatentSift below. A band
    walks from column to column; a pill carrying the candidates travels along
-   each lane (16, then the retained 8 after Stage 1, then the one Best@K
-   pick); every stage that spends LLM tokens counts its cost up, the lane's
+   each lane (16, then 8 after Stage 1, 4 after the regression tests, then
+   the one Best@K pick); every stage that spends LLM tokens counts its cost up, the lane's
    running total climbs on the right, and the bars underneath grow segment by
    segment until the saving stands between them.
 
@@ -54,9 +54,9 @@
   el("desc", { id: "tflow-desc" }, svg).textContent =
     "Both pipelines start from the same 16 candidate trajectories. Stage 1: the existing pipeline scores every " +
     "candidate with an LLM-based execution-free verifier, about 827K tokens; LatentSift scores them from policy " +
-    "states already produced, 0 LLM tokens. Both keep the top 8. Stage 2: regression tests, no LLM tokens. " +
+    "states already produced, 0 LLM tokens. Both keep the top 8. Stage 2: regression tests keep 4, no LLM tokens. " +
     "Stage 3: test generation, about 208K versus 211K tokens. Stage 4: the existing pipeline reuses its Stage-1 " +
-    "scores; LatentSift runs the LLM verifier on the 8 survivors only, about 183K tokens. Verification tokens per " +
+    "scores; LatentSift runs the LLM verifier on the 4 remaining candidates only, about 183K tokens. Verification tokens per " +
     "task: about 1,035K versus 394K, a saving of 641K (61.9%), on DeepSWE-Preview at K = 16.";
 
   var L = {};
@@ -91,7 +91,7 @@
       { kind: "free", lines: ["Stage 1:", "LatentSift"], chip: { icon: "zero", text: "0 LLM tokens", label: "policy states reused" } },
       { kind: "eb", lines: ["Stage 2:", "EB · regression"], chip: null },
       { kind: "tg", lines: ["Stage 3:", "EB · test gen"], chip: { icon: "tg", value: T.tgNew, label: "test generation" } },
-      { kind: "ef", lines: ["Stage 4:", "LLM-based", "EF verifier"], chip: { icon: "ef", value: T.efNew, label: "final verifier, on K/2 only" } },
+      { kind: "ef", lines: ["Stage 4:", "LLM-based", "EF verifier"], chip: { icon: "ef", value: T.efNew, label: "final verifier, on 4 candidates only" } },
       { kind: "best", lines: ["Best@K"], chip: null }
     ]
   };
@@ -255,9 +255,9 @@
   var CAPTION = [
     "<b>Input</b> · Both pipelines start from the same K = 16 candidate trajectories. Generating them (~850K tokens) is counted separately; the totals track verification only.",
     "<b>Stage 1</b> · The existing pipeline scores every candidate with an LLM verifier (~827K tokens). LatentSift scores them from policy states the agent already produced: 0 LLM tokens. Both keep the top 8.",
-    "<b>Stage 2</b> · Regression tests run on the 8 survivors: execution-based, no LLM tokens on either side.",
+    "<b>Stage 2</b> · Regression tests run on the 8 survivors and keep 4: execution-based, no LLM tokens on either side.",
     "<b>Stage 3</b> · Both generate tests with an LLM, at about the same cost (~208K vs ~211K).",
-    "<b>Stage 4</b> · The existing pipeline reuses its Stage-1 scores; LatentSift runs its one LLM verifier pass, on the 8 survivors only (~183K).",
+    "<b>Stage 4</b> · The existing pipeline reuses its Stage-1 scores; LatentSift runs its one LLM verifier pass, on the 4 remaining candidates only (~183K).",
     "<b>Result</b> · Same Best@16 selection, with Best@16 rising from 59.26% to 60.06%, for ~394K verification tokens instead of ~1,035K: <b>641K saved per task (−61.9%)</b>."
   ];
 
@@ -295,9 +295,18 @@
       { duration: 360, delay: delay || 0, easing: "ease-in-out" });
   }
 
+  /* the bar grows; its label waits for it rather than being squashed */
   function grow(key, delay) {
-    return play(reg[key], [{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }],
-      { duration: 900, delay: delay || 0, easing: TRAVEL });
+    var g = reg[key];
+    g.classList.remove("is-off");
+    if (fast) { return Promise.resolve(); }
+    var d = delay || 0;
+    var bar = g.querySelector("rect").animate([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }],
+      { duration: 900, delay: d, easing: TRAVEL, fill: "backwards" });
+    var label = g.querySelector("text").animate([{ opacity: 0 }, { opacity: 1 }],
+      { duration: 300, delay: d + 750, fill: "backwards" });
+    live.push(bar, label);
+    return bar.finished.then(noop, noop);
   }
 
   function light(key) { reg[key].classList.add("is-on"); }
@@ -434,6 +443,7 @@
       await Promise.all([draw("arr-a2"), draw("arr-b2")]); ok();
       focusCol(3); say(3);
       await Promise.all([packetTo("a", 3), packetTo("b", 3)]); ok();
+      setCount("a", "4", "−4"); setCount("b", "4", "−4");
       light("a3"); light("b3");
       await Promise.all([
         pop("chip-a3"), count(reg["chip-a3"].__value, 0, T.tgOld, 1000, id, "~"),
